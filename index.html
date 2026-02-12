@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABUNDA MECHANIC | Taller Inteligente</title>
+    
+    <!-- Librerías -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Roboto', 'sans-serif'], mono: ['Fira Code', 'monospace'] },
+                    colors: {
+                        mech: {
+                            dark: '#0a0a0a',
+                            panel: '#1c1c1c',
+                            orange: '#ff4d00',
+                            steel: '#333333',
+                            text: '#e5e5e5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0a0a0a; color: #e5e5e5; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Markdown Styles para Manuales */
+        .manual-content h1 { color: #ff4d00; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; border-bottom: 1px solid #333; }
+        .manual-content h2 { color: #fff; font-size: 1.2rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .manual-content strong { color: #ff9900; }
+        .manual-content ul { list-style-type: disc; padding-left: 1.5rem; color: #a3a3a3; margin-bottom: 1rem; }
+        .manual-content li { margin-bottom: 0.25rem; }
+        .manual-content code { background: #262626; padding: 2px 6px; rounded: 4px; font-family: 'Fira Code', monospace; color: #00ffcc; font-size: 0.9em; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff4d00; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden font-sans">
+    <div id="root" class="h-full flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // ==========================================
+        // CONFIGURACIÓN TÁCTICA
+        // ==========================================
+        
+        // URL DE SU BACKEND EN HEROKU (Backend OpenAI)
+        const DEFAULT_BACKEND_URL = "https://abundalegal-c960c33a1447.herokuapp.com"; 
+
+        // CONFIGURACIÓN FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyC8Qqq7F1kGvaNlTzL5gRQWTdMBVjuEamQ", 
+            authDomain: "abunda-ai.firebaseapp.com",
+            projectId: "abunda-ai",
+            storageBucket: "abunda-ai.firebasestorage.app",
+            messagingSenderId: "G-4XZ8WVKSL1",
+            appId: "1:833878539166:web:01a3726d456efd3bbb348f"
+        };
+
+        let db = null;
+        try {
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        } catch(e) { console.error("Firebase Error:", e); }
+
+        // ==========================================
+        // COMPONENTES
+        // ==========================================
+
+        const LoginScreen = ({ onLogin }) => {
+            const [email, setEmail] = useState("");
+            const [password, setPassword] = useState("");
+            const [loading, setLoading] = useState(false);
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                try {
+                    const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
+                    onLogin(cred.user);
+                } catch (error) {
+                    alert("Acceso denegado: " + error.message);
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="w-full h-full flex items-center justify-center bg-mech-dark relative overflow-hidden">
+                    {/* Background Image */}
+                    <div className="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1632823471565-1ec2a1ad1365?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-mech-dark"></div>
+                    
+                    <div className="bg-mech-panel p-10 rounded border border-mech-steel shadow-2xl w-full max-w-md relative z-10 fade-in">
+                        <div className="text-center mb-8">
+                            <div className="inline-block p-4 border-2 border-mech-orange rounded-full mb-4">
+                                <i className="ph ph-engine text-4xl text-mech-orange"></i>
+                            </div>
+                            <h1 className="text-3xl font-bold tracking-tighter text-white italic">ABUNDA <span className="text-mech-orange">MECHANIC</span></h1>
+                            <p className="text-xs text-gray-500 uppercase tracking-widest mt-2 font-bold">Sistema de Taller Inteligente</p>
+                        </div>
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div className="relative">
+                                <i className="ph ph-identification-card absolute left-3 top-3.5 text-gray-500"></i>
+                                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-black border border-mech-steel rounded pl-10 pr-3 py-3 text-white focus:border-mech-orange outline-none transition placeholder:text-gray-700" placeholder="ID Mecánico" />
+                            </div>
+                            <div className="relative">
+                                <i className="ph ph-key absolute left-3 top-3.5 text-gray-500"></i>
+                                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-black border border-mech-steel rounded pl-10 pr-3 py-3 text-white focus:border-mech-orange outline-none transition placeholder:text-gray-700" placeholder="Código de Acceso" />
+                            </div>
+                            <button disabled={loading} className="w-full bg-mech-orange hover:bg-orange-700 text-black font-bold py-3 rounded transition shadow-lg flex justify-center items-center gap-2 uppercase tracking-wide">
+                                {loading ? <i className="ph ph-gear animate-spin text-xl"></i> : <i className="ph ph-wrench text-xl"></i>} 
+                                {loading ? "Conectando..." : "Iniciar Diagnóstico"}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        const Dashboard = ({ user, onLogout }) => {
+            const [query, setQuery] = useState("");
+            const [messages, setMessages] = useState([
+                { role: 'ai', content: `**Sistema En Línea.**\nSoy tu Ingeniero Jefe. ¿Qué vehículo tenemos en el elevador hoy?` }
+            ]);
+            const [loading, setLoading] = useState(false);
+            const [carImage, setCarImage] = useState("https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=2000&auto=format&fit=crop");
+            const [carTitle, setCarTitle] = useState("Esperando Vehículo...");
+            const bottomRef = useRef(null);
+
+            useEffect(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), [messages]);
+
+            const handleSend = async () => {
+                if(!query.trim()) return;
+                
+                const userMsg = { role: 'user', content: query };
+                setMessages(prev => [...prev, userMsg]);
+                setQuery("");
+                setLoading(true);
+
+                // Detectar Marca para cambiar la foto (Efecto visual)
+                const brands = ['Toyota', 'Honda', 'Ford', 'BMW', 'Nissan', 'Chevrolet', 'Audi', 'Mercedes', 'Hyundai'];
+                const detectedBrand = brands.find(b => query.toLowerCase().includes(b.toLowerCase()));
+                if(detectedBrand) {
+                    setCarImage(`https://source.unsplash.com/800x600/?${detectedBrand},car`); 
+                    // Fallback visual manual si unsplash falla, por ahora dejamos el default o cambiamos el titulo
+                    setCarTitle(`Diagnóstico: ${detectedBrand.toUpperCase()}`);
+                }
+
+                try {
+                    // CONTEXTO DE MECÁNICO EXPERTO
+                    const mechanicContext = `
+                        ACTÚA COMO: Ingeniero Mecánico Master y Jefe de Taller.
+                        TU EXPERIENCIA: 30 años en mecánica automotriz, diésel y eléctrica.
+                        
+                        TU OBJETIVO: Dar instrucciones precisas de reparación, diagnóstico y datos técnicos.
+                        
+                        SI TE PIDEN DATOS:
+                        - Proporciona el "Torque" (Pares de apriete) en lb-ft y Nm.
+                        - Indica tipos de aceite y fluidos exactos.
+                        - Explica el orden de encendido o calado de distribución.
+                        
+                        SI ES UN FALLO:
+                        1. Síntomas probables.
+                        2. Pasos de diagnóstico (Qué revisar primero).
+                        3. Solución recomendada.
+                        
+                        FORMATO: Usa Markdown, listas y negritas para datos críticos. Sé breve y directo.
+                        
+                        CONSULTA DEL TALLER: ${userMsg.content}
+                    `;
+
+                    const response = await fetch(`${DEFAULT_BACKEND_URL}/api/chat`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            message: mechanicContext, 
+                            history: messages.slice(-4).map(m => ({
+                                role: m.role === 'ai' ? 'model' : 'user',
+                                content: m.content
+                            }))
+                        })
+                    });
+
+                    if(!response.ok) throw new Error("Fallo en servidor");
+                    const data = await response.json();
+                    
+                    setMessages(prev => [...prev, { role: 'ai', content: data.response }]);
+
+                } catch (e) {
+                    setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Error de conexión. Verifica internet o el servidor." }]);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="flex h-screen bg-mech-dark text-mech-text">
+                    
+                    {/* SIDEBAR TÉCNICO */}
+                    <aside className="w-80 bg-mech-panel border-r border-mech-steel hidden md:flex flex-col z-20 shadow-2xl">
+                        <div className="h-16 flex items-center px-6 border-b border-mech-steel bg-black/40">
+                            <i className="ph ph-steering-wheel text-mech-orange text-2xl mr-3"></i>
+                            <span className="font-bold tracking-wide italic">TALLER <span className="text-mech-orange">PRO</span></span>
+                        </div>
+                        
+                        <div className="p-6 flex-1 overflow-y-auto">
+                            <div className="mb-6">
+                                <div className="bg-black rounded border border-mech-steel overflow-hidden h-40 mb-3 relative group">
+                                    <img src={carImage} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition duration-500" alt="Car" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+                                    <div className="absolute bottom-2 left-2 font-bold text-white text-sm">{carTitle}</div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="bg-mech-steel/20 p-2 rounded border border-mech-steel/50 text-center">
+                                        <p className="text-[10px] text-gray-500 uppercase">Scanner</p>
+                                        <p className="font-mono text-green-500 text-xs">OBD-II OK</p>
+                                    </div>
+                                    <div className="bg-mech-steel/20 p-2 rounded border border-mech-steel/50 text-center">
+                                        <p className="text-[10px] text-gray-500 uppercase">Manuales</p>
+                                        <p className="font-mono text-mech-orange text-xs">ONLINE</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Herramientas Rápidas</p>
+                                <button className="w-full py-2 bg-mech-steel/30 hover:bg-mech-steel/50 text-white rounded text-sm flex items-center px-4 gap-3 transition border border-transparent hover:border-mech-orange/50">
+                                    <i className="ph ph-file-pdf text-red-500"></i> Diagramas Eléctricos
+                                </button>
+                                <button className="w-full py-2 bg-mech-steel/30 hover:bg-mech-steel/50 text-white rounded text-sm flex items-center px-4 gap-3 transition border border-transparent hover:border-mech-orange/50">
+                                    <i className="ph ph-engine text-gray-400"></i> Tabla de Torques
+                                </button>
+                                <button className="w-full py-2 bg-mech-steel/30 hover:bg-mech-steel/50 text-white rounded text-sm flex items-center px-4 gap-3 transition border border-transparent hover:border-mech-orange/50">
+                                    <i className="ph ph-warning-octagon text-yellow-500"></i> Códigos de Falla
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-mech-steel bg-black/20">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-mech-orange text-black rounded flex items-center justify-center font-bold text-lg">M</div>
+                                <div className="overflow-hidden">
+                                    <p className="text-sm font-bold text-white truncate">{user.email}</p>
+                                    <p className="text-[10px] text-green-500 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Activo</p>
+                                </div>
+                                <button onClick={onLogout} className="ml-auto text-gray-500 hover:text-red-500 transition"><i className="ph ph-power text-xl"></i></button>
+                            </div>
+                        </div>
+                    </aside>
+
+                    {/* MAIN CHAT AREA */}
+                    <main className="flex-1 flex flex-col relative bg-mech-dark">
+                        <header className="h-16 bg-mech-panel border-b border-mech-steel flex items-center justify-between px-6 shadow-md z-10">
+                            <div className="flex items-center gap-3">
+                                <i className="ph ph-chats-circle text-mech-orange text-2xl"></i>
+                                <h2 className="font-bold text-gray-200">Asistencia Técnica</h2>
+                            </div>
+                            <div className="flex gap-2 text-xs font-mono">
+                                <span className="bg-black border border-mech-steel px-2 py-1 rounded text-gray-400">v2.4.0</span>
+                            </div>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                            {messages.map((msg, i) => (
+                                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} fade-in`}>
+                                    <div className={`max-w-[90%] md:max-w-[80%] p-4 rounded shadow-sm text-sm leading-relaxed ${
+                                        msg.role === 'user' 
+                                        ? 'bg-mech-orange text-black font-semibold rounded-br-none' 
+                                        : 'bg-mech-panel text-gray-300 border border-mech-steel rounded-bl-none manual-content'
+                                    }`}>
+                                        {msg.role === 'ai' ? (
+                                            <div dangerouslySetInnerHTML={{__html: marked.parse(msg.content)}}></div>
+                                        ) : (
+                                            msg.content
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {loading && (
+                                <div className="flex justify-start">
+                                    <div className="bg-mech-panel p-4 rounded-bl-none border border-mech-steel flex items-center gap-3">
+                                        <i className="ph ph-gear text-mech-orange animate-spin text-xl"></i>
+                                        <span className="text-xs text-gray-400 font-mono">Consultando base de datos...</span>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={bottomRef}></div>
+                        </div>
+
+                        <div className="p-4 bg-mech-panel border-t border-mech-steel">
+                            <div className="max-w-4xl mx-auto relative group">
+                                <input 
+                                    type="text" 
+                                    value={query}
+                                    onChange={e => setQuery(e.target.value)}
+                                    onKeyPress={e => e.key === 'Enter' && handleSend()}
+                                    className="w-full bg-black border border-mech-steel text-gray-200 rounded p-4 pl-5 pr-14 focus:outline-none focus:border-mech-orange focus:ring-1 focus:ring-mech-orange/50 transition font-mono text-sm placeholder:text-gray-600 shadow-inner"
+                                    placeholder="Describe la falla, código de error o pieza..."
+                                    disabled={loading}
+                                    autoFocus
+                                />
+                                <button 
+                                    onClick={handleSend}
+                                    disabled={loading}
+                                    className="absolute right-2 top-2 bottom-2 aspect-square bg-mech-orange hover:bg-orange-600 text-black rounded flex items-center justify-center transition disabled:opacity-50"
+                                >
+                                    <i className="ph ph-paper-plane-right-fill text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </main>
+
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            useEffect(() => {
+                firebase.auth().onAuthStateChanged(u => setUser(u || null));
+            }, []);
+            return <React.Fragment>{!user ? <LoginScreen onLogin={setUser} /> : <Dashboard user={user} onLogout={() => firebase.auth().signOut()} />}</React.Fragment>;
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
