@@ -2,42 +2,37 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ABUNDA MECHANIC | Taller Inteligente</title>
-
-    <link rel="icon" type="image/png" href="/my-favicon/favicon-96x96.png" sizes="96x96" />
-    <link rel="icon" type="image/svg+xml" href="/my-favicon/favicon.svg" />
-    <link rel="shortcut icon" href="/my-favicon/favicon.ico" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/my-favicon/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-title" content="ProfCR" />
-    <link rel="manifest" href="/my-favicon/site.webmanifest" />
-
-    <title>ABUNDA PITS | Inteligencia Empresarial Segura</title>
-    <meta name="description" content="El Sistema Operativo de Conocimiento para empresas modernas. Centraliza documentos, entrena a tu equipo y obtén respuestas instantáneas con IA privada.">
-    <meta name="keywords" content="abunda, ai, ia, abunda ai, documents, pdf, llm, ai for documents, ai for business, ai for sme, ai for big companies">
-	<link rel="canonical" href="https://pits.abunda-ai.com/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- ========================================== -->
+    <!-- SEO OPTIMIZADO PARA WHATSAPP Y REDES SOCIALES -->
+    <!-- ========================================== -->
+    <title>Infiniti Pits | Tu Asistente IA para Mecánica</title>
+    <meta name="description" content="Inteligencia Artificial avanzada para mecánicos y agencias de autos. Diagnósticos, torques y soluciones con voz en tiempo real.">
+    <meta name="theme-color" content="#990000">
+    
+    <!-- Open Graph / Facebook / WhatsApp -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://pits.abunda-ai.com/">
-    <meta property="og:title" content="ABUNDA AI | Inteligencia Empresarial Segura">
-    <meta property="og:description" content="El Sistema Operativo de Conocimiento para empresas modernas. Centraliza documentos, entrena a tu equipo y obtén respuestas instantáneas con IA privada.">
-    <meta property="og:image" content="https://pits.abunda-ai.com/images3/pits.jpg">
+    <meta property="og:url" content="https://pits.infiniti-ia.com/"> <!-- Cambia por tu dominio real si es diferente -->
+    <meta property="og:title" content="Infiniti Pits | Asistente IA para Mecánica">
+    <meta property="og:description" content="Optimiza tu taller. Diagnósticos precisos, pares de apriete y soluciones mecánicas con comandos de voz. ¡Empieza tu chat gratis!">
+    <!-- IMAGEN SEO CARGADA -->
+    <meta property="og:image" content="https://pits.infiniti-ia.com/images3/seo-pits1.jpg"> 
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="ABUNDA PITS">
+    <meta property="og:site_name" content="Infiniti Pits">
 
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://pits.abunda-ai.com/">
-    <meta property="twitter:title" content="ABUNDA PITS | Inteligencia Empresarial Segura">
-    <meta property="twitter:description" content="El Sistema Operativo de Conocimiento para empresas modernas. Centraliza documentos, entrena a tu equipo y obtén respuestas instantáneas con IA privada.">
-    <meta property="twitter:image" content="https://pits.abunda-ai.com/images3/pits.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Infiniti Pits | Asistente IA para Mecánica">
+    <meta name="twitter:description" content="Optimiza tu taller con IA. Diagnósticos, pares de apriete y soluciones al instante.">
+    <meta name="twitter:image" content="https://pits.infiniti-ia.com/images3/seo-pits1.jpg">
 
-	<link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <meta name="theme-color" content="#ffffff">
-    
-    <!-- Librerías -->
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images3/A Mark Small.png">
+
+    <!-- ========================================== -->
+    <!-- LIBRERÍAS Y FUENTES -->
+    <!-- ========================================== -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -47,63 +42,84 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Firebase -->
+    <!-- Firebase (Autenticación) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
+    <!-- Configuración de Tailwind para coincidir con la imagen -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Roboto', 'sans-serif'], mono: ['Fira Code', 'monospace'] },
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'], 
+                        mono: ['Fira Code', 'monospace'] 
+                    },
                     colors: {
-                        mech: {
-                            dark: '#0a0a0a',
-                            panel: '#1c1c1c',
-                            orange: '#ff4d00',
-                            steel: '#333333',
-                            text: '#e5e5e5'
+                        pits: {
+                            dark: '#0a0505',
+                            red: '#990000',
+                            redDark: '#550000',
+                            bgChat: '#efeae2', // Fondo tipo WhatsApp
+                            msgUser: '#e7ffdb', // Burbuja verde usuario
+                            msgAi: '#ffffff', // Burbuja blanca IA
                         }
                     }
                 }
             }
         }
     </script>
+    
     <style>
-        body { background-color: #0a0a0a; color: #e5e5e5; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
+        body { background-color: #0a0505; color: #ffffff; overflow-x: hidden; }
+        
+        /* Fondo con engranajes sutiles inspirado en el SEO */
+        .bg-gears {
+            background-color: #0a0505;
+            background-image: radial-gradient(circle at 50% 0%, #330000 0%, transparent 70%), url('https://www.transparenttextures.com/patterns/black-scales.png');
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Markdown Styles para Manuales */
-        .manual-content h1 { color: #ff4d00; font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; border-bottom: 1px solid #333; }
-        .manual-content h2 { color: #fff; font-size: 1.2rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
-        .manual-content strong { color: #ff9900; }
-        .manual-content ul { list-style-type: disc; padding-left: 1.5rem; color: #a3a3a3; margin-bottom: 1rem; }
-        .manual-content li { margin-bottom: 0.25rem; }
-        .manual-content code { background: #262626; padding: 2px 6px; rounded: 4px; font-family: 'Fira Code', monospace; color: #00ffcc; font-size: 0.9em; }
+        /* Estilos Markdown para las respuestas técnicas */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: bold; margin-bottom: 0.5rem; color: #111; }
+        .markdown-body p { margin-bottom: 0.5rem; }
+        .markdown-body strong { color: #000; font-weight: 700; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+        .markdown-body code { background: #f0f0f0; padding: 2px 4px; rounded: 4px; font-family: monospace; font-size: 0.9em; color: #990000; }
         
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #ff4d00; }
+        /* Scrollbar estilo móvil */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        /* Animación de Audio */
+        .audio-wave { display: flex; align-items: center; gap: 2px; height: 15px; }
+        .audio-wave .bar { width: 3px; background: #990000; border-radius: 3px; height: 3px; transition: height 0.1s; }
+        .speaking .bar { animation: sound 0.5s linear infinite alternate; }
+        @keyframes sound { 0% { height: 3px; } 100% { height: 15px; } }
+        .speaking .bar:nth-child(1) { animation-duration: 0.4s; }
+        .speaking .bar:nth-child(2) { animation-duration: 0.3s; }
+        .speaking .bar:nth-child(3) { animation-duration: 0.5s; }
+        .speaking .bar:nth-child(4) { animation-duration: 0.2s; }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden font-sans">
+<body class="bg-gears h-screen flex flex-col font-sans">
     <div id="root" class="h-full flex flex-col"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
         // ==========================================
-        // CONFIGURACIÓN TÁCTICA
+        // CONFIGURACIÓN
         // ==========================================
-        
-        // URL DE SU BACKEND EN HEROKU (Backend OpenAI)
-        const DEFAULT_BACKEND_URL = "https://pits-720f4041bb80.herokuapp.com"; 
+        // SOBERANO: URL DE SU BACKEND EN HEROKU CON LA VOZ ONYX
+        const BACKEND_URL = "https://pits-720f4041bb80.herokuapp.com/api/chat"; 
+        const LOGO_URL = "images3/A Mark Small.png";
 
-        // CONFIGURACIÓN FIREBASE
+        // FIREBASE CONFIG (Copio la que me dio antes)
         const firebaseConfig = {
             apiKey: "AIzaSyDNSg33pfmXx4yPdsr_u6-tX7pukAQbvn4", 
             authDomain: "pits-382a0.firebaseapp.com",
@@ -119,10 +135,12 @@
             db = firebase.firestore();
         } catch(e) { console.error("Firebase Error:", e); }
 
-        // ==========================================
-        // COMPONENTES
-        // ==========================================
+        // Caché de audio para re-escuchar
+        const audioCache = {};
 
+        // ==========================================
+        // COMPONENTE: LOGIN
+        // ==========================================
         const LoginScreen = ({ onLogin }) => {
             const [email, setEmail] = useState("");
             const [password, setPassword] = useState("");
@@ -141,31 +159,26 @@
             };
 
             return (
-                <div className="w-full h-full flex items-center justify-center bg-mech-dark relative overflow-hidden">
-                    {/* Background Image */}
-                    <div className="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1632823471565-1ec2a1ad1365?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center"></div>
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-mech-dark"></div>
-                    
-                    <div className="bg-mech-panel p-10 rounded border border-mech-steel shadow-2xl w-full max-w-md relative z-10 fade-in">
-                        <div className="text-center mb-8">
-                            <div className="inline-block p-4 border-2 border-mech-orange rounded-full mb-4">
-                                <i className="ph ph-engine text-4xl text-mech-orange"></i>
-                            </div>
-                            <h1 className="text-3xl font-bold tracking-tighter text-white italic">ABUNDA <span className="text-mech-orange">MECHANIC</span></h1>
-                            <p className="text-xs text-gray-500 uppercase tracking-widest mt-2 font-bold">Sistema de Taller Inteligente</p>
-                        </div>
-                        <form onSubmit={handleLogin} className="space-y-4">
+                <div className="w-full h-full flex items-center justify-center relative p-4">
+                    <div className="bg-[#111111]/90 backdrop-blur-md p-10 rounded-3xl border border-pits-red/30 shadow-[0_0_50px_rgba(153,0,0,0.3)] w-full max-w-md relative z-10 fade-in text-center">
+                        <img src={LOGO_URL} alt="Infiniti Pits Logo" className="w-32 h-auto mx-auto mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
+                        <h1 className="text-3xl font-display font-bold tracking-tight text-white mb-1 uppercase">
+                            Infiniti <span className="text-pits-red">Pits</span>
+                        </h1>
+                        <p className="text-sm text-gray-400 mb-8">Acceso Taller Mecánico</p>
+                        
+                        <form onSubmit={handleLogin} className="space-y-5">
                             <div className="relative">
-                                <i className="ph ph-identification-card absolute left-3 top-3.5 text-gray-500"></i>
-                                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-black border border-mech-steel rounded pl-10 pr-3 py-3 text-white focus:border-mech-orange outline-none transition placeholder:text-gray-700" placeholder="ID Mecánico" />
+                                <i className="ph ph-user absolute left-4 top-3.5 text-gray-400 text-lg"></i>
+                                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-black/50 border border-gray-700 rounded-xl pl-12 pr-4 py-3.5 text-white focus:border-pits-red focus:ring-1 focus:ring-pits-red outline-none transition" placeholder="Correo del Mecánico" required />
                             </div>
                             <div className="relative">
-                                <i className="ph ph-key absolute left-3 top-3.5 text-gray-500"></i>
-                                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-black border border-mech-steel rounded pl-10 pr-3 py-3 text-white focus:border-mech-orange outline-none transition placeholder:text-gray-700" placeholder="Código de Acceso" />
+                                <i className="ph ph-lock-key absolute left-4 top-3.5 text-gray-400 text-lg"></i>
+                                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-black/50 border border-gray-700 rounded-xl pl-12 pr-4 py-3.5 text-white focus:border-pits-red focus:ring-1 focus:ring-pits-red outline-none transition" placeholder="Contraseña Segura" required />
                             </div>
-                            <button disabled={loading} className="w-full bg-mech-orange hover:bg-orange-700 text-black font-bold py-3 rounded transition shadow-lg flex justify-center items-center gap-2 uppercase tracking-wide">
-                                {loading ? <i className="ph ph-gear animate-spin text-xl"></i> : <i className="ph ph-wrench text-xl"></i>} 
-                                {loading ? "Conectando..." : "Iniciar Diagnóstico"}
+                            <button disabled={loading} className="w-full bg-gradient-to-r from-pits-red to-red-600 hover:from-red-600 hover:to-red-500 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-red-900/50 flex justify-center items-center gap-2 uppercase tracking-wide mt-4">
+                                {loading ? <i className="ph ph-spinner animate-spin text-xl"></i> : <i className="ph ph-wrench text-xl"></i>} 
+                                {loading ? "Iniciando Sistema..." : "Entrar al Taller"}
                             </button>
                         </form>
                     </div>
@@ -173,17 +186,21 @@
             );
         };
 
+        // ==========================================
+        // COMPONENTE: CHAT (DISEÑO TIPO IMAGEN SEO)
+        // ==========================================
         const Dashboard = ({ user, onLogout }) => {
             const [query, setQuery] = useState("");
             const [messages, setMessages] = useState([
-                { role: 'ai', content: `**Sistema En Línea.**\nSoy tu Ingeniero Jefe. ¿Qué vehículo tenemos en el elevador hoy?` }
+                { role: 'ai', content: "¡Hola! Soy el Ingeniero Jefe de Infiniti Pits.\n¿Qué vehículo vamos a diagnosticar hoy?" }
             ]);
             const [loading, setLoading] = useState(false);
-            const [carImage, setCarImage] = useState("https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?q=80&w=2000&auto=format&fit=crop");
-            const [carTitle, setCarTitle] = useState("Esperando Vehículo...");
+            const [playingAudioId, setPlayingAudioId] = useState(null);
+            
             const bottomRef = useRef(null);
+            const audioRef = useRef(null);
 
-            useEffect(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), [messages]);
+            useEffect(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), [messages, loading]);
 
             const handleSend = async () => {
                 if(!query.trim()) return;
@@ -193,179 +210,178 @@
                 setQuery("");
                 setLoading(true);
 
-                // Detectar Marca para cambiar la foto (Efecto visual)
-                const brands = ['Toyota', 'Honda', 'Ford', 'BMW', 'Nissan', 'Chevrolet', 'Audi', 'Mercedes', 'Hyundai'];
-                const detectedBrand = brands.find(b => query.toLowerCase().includes(b.toLowerCase()));
-                if(detectedBrand) {
-                    setCarImage(`https://source.unsplash.com/800x600/?${detectedBrand},car`); 
-                    // Fallback visual manual si unsplash falla, por ahora dejamos el default o cambiamos el titulo
-                    setCarTitle(`Diagnóstico: ${detectedBrand.toUpperCase()}`);
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    setPlayingAudioId(null);
                 }
 
                 try {
-                    // CONTEXTO DE MECÁNICO EXPERTO
-                    const mechanicContext = `
-                        ACTÚA COMO: Ingeniero Mecánico Master y Jefe de Taller.
-                        TU EXPERIENCIA: 30 años en mecánica automotriz, diésel y eléctrica.
-                        
-                        TU OBJETIVO: Dar instrucciones precisas de reparación, diagnóstico y datos técnicos.
-                        
-                        SI TE PIDEN DATOS:
-                        - Proporciona el "Torque" (Pares de apriete) en lb-ft y Nm.
-                        - Indica tipos de aceite y fluidos exactos.
-                        - Explica el orden de encendido o calado de distribución.
-                        
-                        SI ES UN FALLO:
-                        1. Síntomas probables.
-                        2. Pasos de diagnóstico (Qué revisar primero).
-                        3. Solución recomendada.
-                        
-                        FORMATO: Usa Markdown, listas y negritas para datos críticos. Sé breve y directo.
-                        
-                        CONSULTA DEL TALLER: ${userMsg.content}
-                    `;
-
-                    const response = await fetch(`${DEFAULT_BACKEND_URL}/api/chat`, {
+                    const response = await fetch(BACKEND_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            message: mechanicContext, 
-                            history: messages.slice(-4).map(m => ({
+                            message: userMsg.content, 
+                            history: messages.slice(-6).map(m => ({
                                 role: m.role === 'ai' ? 'model' : 'user',
                                 content: m.content
                             }))
                         })
                     });
 
-                    if(!response.ok) throw new Error("Fallo en servidor");
+                    if(!response.ok) throw new Error("Fallo en servidor de IA");
                     const data = await response.json();
                     
-                    setMessages(prev => [...prev, { role: 'ai', content: data.response }]);
+                    // Manejo del mensaje y el audio
+                    const newAiMsg = { role: 'ai', content: data.response };
+                    
+                    if (data.audio_base64) {
+                        const audioId = 'audio-' + Date.now();
+                        audioCache[audioId] = data.audio_base64;
+                        newAiMsg.audioId = audioId;
+                        playVoice(data.audio_base64, audioId);
+                    }
+
+                    setMessages(prev => [...prev, newAiMsg]);
 
                 } catch (e) {
-                    setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Error de conexión. Verifica internet o el servidor." }]);
+                    setMessages(prev => [...prev, { role: 'ai', content: `⚠️ Error de conexión: ${e.message}` }]);
                 } finally {
                     setLoading(false);
                 }
             };
 
+            const playVoice = (base64Data, id) => {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                }
+                const audioSrc = "data:audio/mp3;base64," + base64Data;
+                const audio = new Audio(audioSrc);
+                audioRef.current = audio;
+                
+                audio.onplay = () => setPlayingAudioId(id);
+                audio.onended = () => setPlayingAudioId(null);
+                audio.onpause = () => setPlayingAudioId(null);
+                
+                audio.play().catch(e => console.log("Autoplay bloqueado por el navegador."));
+            };
+
+            const replayAudio = (id) => {
+                if (audioCache[id]) {
+                    playVoice(audioCache[id], id);
+                }
+            };
+
             return (
-                <div className="flex h-screen bg-mech-dark text-mech-text">
-                    
-                    {/* SIDEBAR TÉCNICO */}
-                    <aside className="w-80 bg-mech-panel border-r border-mech-steel hidden md:flex flex-col z-20 shadow-2xl">
-                        <div className="h-16 flex items-center px-6 border-b border-mech-steel bg-black/40">
-                            <i className="ph ph-steering-wheel text-mech-orange text-2xl mr-3"></i>
-                            <span className="font-bold tracking-wide italic">TALLER <span className="text-mech-orange">PRO</span></span>
-                        </div>
+                <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-12 relative">
+                    {/* "Tablet" Container */}
+                    <div className="w-full h-full md:max-w-2xl bg-white md:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border-[8px] border-[#222] md:border-[#1a1a1a]">
                         
-                        <div className="p-6 flex-1 overflow-y-auto">
-                            <div className="mb-6">
-                                <div className="bg-black rounded border border-mech-steel overflow-hidden h-40 mb-3 relative group">
-                                    <img src={carImage} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition duration-500" alt="Car" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
-                                    <div className="absolute bottom-2 left-2 font-bold text-white text-sm">{carTitle}</div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="bg-mech-steel/20 p-2 rounded border border-mech-steel/50 text-center">
-                                        <p className="text-[10px] text-gray-500 uppercase">Scanner</p>
-                                        <p className="font-mono text-green-500 text-xs">OBD-II OK</p>
-                                    </div>
-                                    <div className="bg-mech-steel/20 p-2 rounded border border-mech-steel/50 text-center">
-                                        <p className="text-[10px] text-gray-500 uppercase">Manuales</p>
-                                        <p className="font-mono text-mech-orange text-xs">ONLINE</p>
-                                    </div>
-                                </div>
+                        {/* Header (WhatsApp Style) */}
+                        <header className="bg-white border-b border-gray-200 h-16 flex items-center px-4 shrink-0 shadow-sm z-10">
+                            <button className="text-gray-500 hover:text-black mr-2"><i className="ph ph-caret-left text-2xl"></i></button>
+                            <img src={LOGO_URL} alt="Logo" className="w-10 h-10 rounded-full object-contain p-1 border border-gray-200 bg-gray-50" />
+                            <div className="ml-3 flex-1">
+                                <h2 className="font-bold text-gray-900 text-lg leading-tight">Infiniti Pits</h2>
+                                <p className="text-xs text-green-600 font-medium">Ingeniero Jefe (En Línea)</p>
                             </div>
-
-                            <div className="space-y-3">
-                                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Herramientas Rápidas</p>
-                                <button className="w-full py-2 bg-mech-steel/30 hover:bg-mech-steel/50 text-white rounded text-sm flex items-center px-4 gap-3 transition border border-transparent hover:border-mech-orange/50">
-                                    <i className="ph ph-file-pdf text-red-500"></i> Diagramas Eléctricos
-                                </button>
-                                <button className="w-full py-2 bg-mech-steel/30 hover:bg-mech-steel/50 text-white rounded text-sm flex items-center px-4 gap-3 transition border border-transparent hover:border-mech-orange/50">
-                                    <i className="ph ph-engine text-gray-400"></i> Tabla de Torques
-                                </button>
-                                <button className="w-full py-2 bg-mech-steel/30 hover:bg-mech-steel/50 text-white rounded text-sm flex items-center px-4 gap-3 transition border border-transparent hover:border-mech-orange/50">
-                                    <i className="ph ph-warning-octagon text-yellow-500"></i> Códigos de Falla
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="p-4 border-t border-mech-steel bg-black/20">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-mech-orange text-black rounded flex items-center justify-center font-bold text-lg">M</div>
-                                <div className="overflow-hidden">
-                                    <p className="text-sm font-bold text-white truncate">{user.email}</p>
-                                    <p className="text-[10px] text-green-500 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Activo</p>
-                                </div>
-                                <button onClick={onLogout} className="ml-auto text-gray-500 hover:text-red-500 transition"><i className="ph ph-power text-xl"></i></button>
-                            </div>
-                        </div>
-                    </aside>
-
-                    {/* MAIN CHAT AREA */}
-                    <main className="flex-1 flex flex-col relative bg-mech-dark">
-                        <header className="h-16 bg-mech-panel border-b border-mech-steel flex items-center justify-between px-6 shadow-md z-10">
-                            <div className="flex items-center gap-3">
-                                <i className="ph ph-chats-circle text-mech-orange text-2xl"></i>
-                                <h2 className="font-bold text-gray-200">Asistencia Técnica</h2>
-                            </div>
-                            <div className="flex gap-2 text-xs font-mono">
-                                <span className="bg-black border border-mech-steel px-2 py-1 rounded text-gray-400">v2.4.0</span>
-                            </div>
+                            <button onClick={onLogout} className="text-gray-400 hover:text-red-500 p-2"><i className="ph ph-sign-out text-xl"></i></button>
+                            <button className="text-gray-500 p-2"><i className="ph ph-dots-three-vertical text-2xl"></i></button>
                         </header>
 
-                        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                        {/* Chat Body (WhatsApp Background) */}
+                        <div className="flex-1 bg-pits-bgChat overflow-y-auto p-4 space-y-4 relative bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+                            
+                            <div className="text-center my-4">
+                                <span className="bg-[#e1e8e4] text-[#54656f] text-xs px-3 py-1 rounded-lg shadow-sm">Hoy</span>
+                            </div>
+
                             {messages.map((msg, i) => (
                                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} fade-in`}>
-                                    <div className={`max-w-[90%] md:max-w-[80%] p-4 rounded shadow-sm text-sm leading-relaxed ${
+                                    {msg.role === 'ai' && (
+                                        <img src={LOGO_URL} className="w-8 h-8 rounded-full mr-2 self-end mb-1 border border-gray-200 bg-white" alt="IA" />
+                                    )}
+                                    <div className={`max-w-[85%] px-3 py-2 text-[15px] shadow-sm relative ${
                                         msg.role === 'user' 
-                                        ? 'bg-mech-orange text-black font-semibold rounded-br-none' 
-                                        : 'bg-mech-panel text-gray-300 border border-mech-steel rounded-bl-none manual-content'
+                                        ? 'bg-pits-msgUser text-black rounded-l-xl rounded-tr-xl rounded-br-sm' 
+                                        : 'bg-pits-msgAi text-black rounded-r-xl rounded-tl-xl rounded-bl-sm border border-gray-100'
                                     }`}>
                                         {msg.role === 'ai' ? (
-                                            <div dangerouslySetInnerHTML={{__html: marked.parse(msg.content)}}></div>
+                                            <div>
+                                                <div className="markdown-body text-gray-800 leading-snug" dangerouslySetInnerHTML={{__html: marked.parse(msg.content)}}></div>
+                                                
+                                                {/* Reproductor de Audio (Onyx) */}
+                                                {msg.audioId && (
+                                                    <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
+                                                        <div className={`audio-wave ${playingAudioId === msg.audioId ? 'speaking' : ''}`}>
+                                                            <div className="bar"></div><div className="bar"></div><div className="bar"></div><div className="bar"></div>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => replayAudio(msg.audioId)} 
+                                                            className="text-xs font-bold text-gray-500 hover:text-pits-red flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md transition"
+                                                        >
+                                                            <i className="ph-fill ph-speaker-high"></i> Escuchar
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         ) : (
-                                            msg.content
+                                            <div className="text-gray-800">{msg.content}</div>
                                         )}
+                                        
+                                        {/* Hora del mensaje (Simulada) */}
+                                        <span className="text-[10px] text-gray-400 float-right mt-1 ml-3">
+                                            {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            {msg.role === 'user' && <i className="ph-fill ph-checks text-blue-500 ml-1"></i>}
+                                        </span>
                                     </div>
                                 </div>
                             ))}
+                            
                             {loading && (
                                 <div className="flex justify-start">
-                                    <div className="bg-mech-panel p-4 rounded-bl-none border border-mech-steel flex items-center gap-3">
-                                        <i className="ph ph-gear text-mech-orange animate-spin text-xl"></i>
-                                        <span className="text-xs text-gray-400 font-mono">Consultando base de datos...</span>
+                                    <img src={LOGO_URL} className="w-8 h-8 rounded-full mr-2 self-end mb-1 opacity-50" />
+                                    <div className="bg-white p-3 rounded-r-xl rounded-tl-xl rounded-bl-sm shadow-sm flex gap-1 items-center h-10">
+                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-100"></span>
+                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-200"></span>
                                     </div>
                                 </div>
                             )}
                             <div ref={bottomRef}></div>
                         </div>
 
-                        <div className="p-4 bg-mech-panel border-t border-mech-steel">
-                            <div className="max-w-4xl mx-auto relative group">
-                                <input 
-                                    type="text" 
+                        {/* Input Area (WhatsApp Style) */}
+                        <div className="bg-[#f0f2f5] p-3 flex items-end gap-2 shrink-0">
+                            <div className="flex-1 bg-white rounded-3xl flex items-end px-2 shadow-sm border border-transparent focus-within:border-gray-300">
+                                <button className="p-3 text-gray-500 hover:text-gray-700"><i className="ph ph-smiley text-2xl"></i></button>
+                                <textarea 
                                     value={query}
                                     onChange={e => setQuery(e.target.value)}
-                                    onKeyPress={e => e.key === 'Enter' && handleSend()}
-                                    className="w-full bg-black border border-mech-steel text-gray-200 rounded p-4 pl-5 pr-14 focus:outline-none focus:border-mech-orange focus:ring-1 focus:ring-mech-orange/50 transition font-mono text-sm placeholder:text-gray-600 shadow-inner"
-                                    placeholder="Describe la falla, código de error o pieza..."
+                                    onKeyDown={e => {
+                                        if(e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSend();
+                                        }
+                                    }}
+                                    className="flex-1 max-h-32 min-h-[44px] py-3 px-2 focus:outline-none resize-none text-[15px] bg-transparent text-gray-800 placeholder:text-gray-500"
+                                    placeholder="Enviar un mensaje..."
+                                    rows="1"
                                     disabled={loading}
-                                    autoFocus
-                                />
-                                <button 
-                                    onClick={handleSend}
-                                    disabled={loading}
-                                    className="absolute right-2 top-2 bottom-2 aspect-square bg-mech-orange hover:bg-orange-600 text-black rounded flex items-center justify-center transition disabled:opacity-50"
-                                >
-                                    <i className="ph ph-paper-plane-right-fill text-xl"></i>
-                                </button>
+                                ></textarea>
+                                <button className="p-3 text-gray-500 hover:text-gray-700"><i className="ph ph-camera text-2xl"></i></button>
                             </div>
+                            {query.trim() ? (
+                                <button onClick={handleSend} disabled={loading} className="w-12 h-12 bg-[#00a884] rounded-full flex items-center justify-center text-white shadow-md hover:bg-[#008f6f] transition shrink-0 transform active:scale-95">
+                                    <i className="ph-fill ph-paper-plane-right text-xl ml-1"></i>
+                                </button>
+                            ) : (
+                                <button className="w-12 h-12 bg-[#00a884] rounded-full flex items-center justify-center text-white shadow-md shrink-0 opacity-80 cursor-not-allowed">
+                                    <i className="ph-fill ph-microphone text-xl"></i>
+                                </button>
+                            )}
                         </div>
-                    </main>
 
+                    </div>
                 </div>
             );
         };
@@ -373,17 +389,18 @@
         const App = () => {
             const [user, setUser] = useState(null);
             useEffect(() => {
-                firebase.auth().onAuthStateChanged(u => setUser(u || null));
+                const unsubscribe = firebase.auth().onAuthStateChanged(u => setUser(u || null));
+                return () => unsubscribe();
             }, []);
-            return <React.Fragment>{!user ? <LoginScreen onLogin={setUser} /> : <Dashboard user={user} onLogout={() => firebase.auth().signOut()} />}</React.Fragment>;
+            return (
+                <React.Fragment>
+                    {!user ? <LoginScreen onLogin={setUser} /> : <Dashboard user={user} onLogout={() => firebase.auth().signOut()} />}
+                </React.Fragment>
+            );
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
 </body>
-
 </html>
-
-
-
