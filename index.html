@@ -30,9 +30,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="images3/A Mark Small.png">
 
-    <!-- ========================================== -->
     <!-- LIBRERÍAS Y FUENTES -->
-    <!-- ========================================== -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -42,28 +40,26 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Firebase (Autenticación) -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-    <!-- Configuración de Tailwind para coincidir con la imagen -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: { 
                         sans: ['Inter', 'sans-serif'], 
-                        mono: ['Fira Code', 'monospace'] 
+                        display: ['Space Grotesk', 'sans-serif'] 
                     },
                     colors: {
                         pits: {
                             dark: '#0a0505',
                             red: '#990000',
-                            redDark: '#550000',
-                            bgChat: '#efeae2', // Fondo tipo WhatsApp
-                            msgUser: '#e7ffdb', // Burbuja verde usuario
-                            msgAi: '#ffffff', // Burbuja blanca IA
+                            bgChat: '#efeae2',
+                            msgUser: '#e7ffdb',
+                            msgAi: '#ffffff',
                         }
                     }
                 }
@@ -74,7 +70,6 @@
     <style>
         body { background-color: #0a0505; color: #ffffff; overflow-x: hidden; }
         
-        /* Fondo con engranajes sutiles inspirado en el SEO */
         .bg-gears {
             background-color: #0a0505;
             background-image: radial-gradient(circle at 50% 0%, #330000 0%, transparent 70%), url('https://www.transparenttextures.com/patterns/black-scales.png');
@@ -83,14 +78,13 @@
         .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* Estilos Markdown para las respuestas técnicas */
+        /* Estilos Markdown */
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: bold; margin-bottom: 0.5rem; color: #111; }
         .markdown-body p { margin-bottom: 0.5rem; }
         .markdown-body strong { color: #000; font-weight: 700; }
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
         .markdown-body code { background: #f0f0f0; padding: 2px 4px; rounded: 4px; font-family: monospace; font-size: 0.9em; color: #990000; }
         
-        /* Scrollbar estilo móvil */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
@@ -113,13 +107,12 @@
         const { useState, useEffect, useRef } = React;
 
         // ==========================================
-        // CONFIGURACIÓN
+        // CONFIGURACIÓN DEL BACKEND
         // ==========================================
-        // SOBERANO: URL DE SU BACKEND EN HEROKU CON LA VOZ ONYX
         const BACKEND_URL = "https://pits-720f4041bb80.herokuapp.com/api/chat"; 
         const LOGO_URL = "images3/A Mark Small.png";
 
-        // FIREBASE CONFIG (Copio la que me dio antes)
+        // FIREBASE CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyDNSg33pfmXx4yPdsr_u6-tX7pukAQbvn4", 
             authDomain: "pits-382a0.firebaseapp.com",
@@ -129,13 +122,10 @@
             appId: "1:828002449733:web:69a5738bab59a3c52ce62c"
         };
 
-        let db = null;
         try {
             if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
         } catch(e) { console.error("Firebase Error:", e); }
 
-        // Caché de audio para re-escuchar
         const audioCache = {};
 
         // ==========================================
@@ -187,27 +177,78 @@
         };
 
         // ==========================================
-        // COMPONENTE: CHAT (DISEÑO TIPO IMAGEN SEO)
+        // COMPONENTE: DASHBOARD (CHAT + VOZ)
         // ==========================================
         const Dashboard = ({ user, onLogout }) => {
             const [query, setQuery] = useState("");
             const [messages, setMessages] = useState([
-                { role: 'ai', content: "¡Hola! Soy el Ingeniero Jefe de Infiniti Pits.\n¿Qué vehículo vamos a diagnosticar hoy?" }
+                { role: 'ai', content: "¡Hola, colega! Soy **Maximus**, el Ingeniero Jefe de Infiniti Pits.\nPresiona el micrófono para hablar o escríbeme. ¿Qué vehículo vamos a diagnosticar hoy?" }
             ]);
             const [loading, setLoading] = useState(false);
             const [playingAudioId, setPlayingAudioId] = useState(null);
             
+            // Estados para el micrófono
+            const [isListening, setIsListening] = useState(false);
+            
             const bottomRef = useRef(null);
             const audioRef = useRef(null);
+            
+            // Configuración de Web Speech API
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 
-            useEffect(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), [messages, loading]);
+            if (recognition) {
+                recognition.continuous = false;
+                recognition.lang = 'es-ES'; // Habla hispana
+                recognition.interimResults = false;
 
-            const handleSend = async () => {
-                if(!query.trim()) return;
+                recognition.onstart = () => {
+                    setIsListening(true);
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                        setPlayingAudioId(null);
+                    }
+                };
+
+                recognition.onresult = (event) => {
+                    const text = event.results[0][0].transcript;
+                    handleSend(text); // Envía automáticamente lo que escuchó
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Error de micrófono:", event.error);
+                    setIsListening(false);
+                };
+
+                recognition.onend = () => {
+                    setIsListening(false);
+                };
+            }
+
+            useEffect(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), [messages, loading, isListening]);
+
+            const toggleMic = () => {
+                if (!recognition) {
+                    alert("Tu navegador no soporta entrada de voz. Te recomiendo usar Google Chrome.");
+                    return;
+                }
+                if (isListening) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            };
+
+            // Lógica de envío unificada (Texto o Voz)
+            const handleSend = async (textToSend = query) => {
+                if(!textToSend.trim()) return;
                 
-                const userMsg = { role: 'user', content: query };
+                const userMsg = { role: 'user', content: textToSend };
                 setMessages(prev => [...prev, userMsg]);
-                setQuery("");
+                
+                // Limpiar input solo si fue escrito a mano
+                if(textToSend === query) setQuery(""); 
+                
                 setLoading(true);
 
                 if (audioRef.current) {
@@ -216,11 +257,14 @@
                 }
 
                 try {
+                    // INYECCIÓN DE PERSONALIDAD MAXIMUS
+                    const MAXIMUS_PROMPT = `INSTRUCCIÓN DE ROL: Tu nombre es Maximus, el Ingeniero en Jefe de Mecánica Automotriz de Infiniti Pits. Responde a la siguiente consulta del mecánico con autoridad, lenguaje técnico, precisión y masculinidad. Ve directo al grano.\n\nCONSULTA DEL MECÁNICO: `;
+
                     const response = await fetch(BACKEND_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            message: userMsg.content, 
+                            message: MAXIMUS_PROMPT + textToSend, 
                             history: messages.slice(-6).map(m => ({
                                 role: m.role === 'ai' ? 'model' : 'user',
                                 content: m.content
@@ -228,11 +272,13 @@
                         })
                     });
 
-                    if(!response.ok) throw new Error("Fallo en servidor de IA");
+                    if(!response.ok) throw new Error("Fallo en el cerebro central de la IA");
                     const data = await response.json();
                     
-                    // Manejo del mensaje y el audio
-                    const newAiMsg = { role: 'ai', content: data.response };
+                    // En caso de que la IA repita la instrucción (limpieza de texto)
+                    let cleanText = data.response.replace(/INSTRUCCIÓN DE ROL:.*?CONSULTA DEL MECÁNICO: /i, '').trim();
+
+                    const newAiMsg = { role: 'ai', content: cleanText };
                     
                     if (data.audio_base64) {
                         const audioId = 'audio-' + Date.now();
@@ -244,7 +290,7 @@
                     setMessages(prev => [...prev, newAiMsg]);
 
                 } catch (e) {
-                    setMessages(prev => [...prev, { role: 'ai', content: `⚠️ Error de conexión: ${e.message}` }]);
+                    setMessages(prev => [...prev, { role: 'ai', content: `⚠️ Error de comunicación cuántica: ${e.message}` }]);
                 } finally {
                     setLoading(false);
                 }
@@ -266,39 +312,35 @@
             };
 
             const replayAudio = (id) => {
-                if (audioCache[id]) {
-                    playVoice(audioCache[id], id);
-                }
+                if (audioCache[id]) playVoice(audioCache[id], id);
             };
 
             return (
                 <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-12 relative">
-                    {/* "Tablet" Container */}
                     <div className="w-full h-full md:max-w-2xl bg-white md:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border-[8px] border-[#222] md:border-[#1a1a1a]">
                         
-                        {/* Header (WhatsApp Style) */}
+                        {/* Header WhatsApp */}
                         <header className="bg-white border-b border-gray-200 h-16 flex items-center px-4 shrink-0 shadow-sm z-10">
                             <button className="text-gray-500 hover:text-black mr-2"><i className="ph ph-caret-left text-2xl"></i></button>
                             <img src={LOGO_URL} alt="Logo" className="w-10 h-10 rounded-full object-contain p-1 border border-gray-200 bg-gray-50" />
                             <div className="ml-3 flex-1">
-                                <h2 className="font-bold text-gray-900 text-lg leading-tight">Infiniti Pits</h2>
+                                <h2 className="font-bold text-gray-900 text-lg leading-tight">Agente Maximus</h2>
                                 <p className="text-xs text-green-600 font-medium">Ingeniero Jefe (En Línea)</p>
                             </div>
-                            <button onClick={onLogout} className="text-gray-400 hover:text-red-500 p-2"><i className="ph ph-sign-out text-xl"></i></button>
-                            <button className="text-gray-500 p-2"><i className="ph ph-dots-three-vertical text-2xl"></i></button>
+                            <button onClick={onLogout} className="text-gray-400 hover:text-red-500 p-2" title="Cerrar Sesión"><i className="ph ph-sign-out text-xl"></i></button>
                         </header>
 
-                        {/* Chat Body (WhatsApp Background) */}
+                        {/* Chat Body */}
                         <div className="flex-1 bg-pits-bgChat overflow-y-auto p-4 space-y-4 relative bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
                             
                             <div className="text-center my-4">
-                                <span className="bg-[#e1e8e4] text-[#54656f] text-xs px-3 py-1 rounded-lg shadow-sm">Hoy</span>
+                                <span className="bg-[#e1e8e4] text-[#54656f] text-xs px-3 py-1 rounded-lg shadow-sm font-bold">Conexión Segura Activa</span>
                             </div>
 
                             {messages.map((msg, i) => (
                                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} fade-in`}>
                                     {msg.role === 'ai' && (
-                                        <img src={LOGO_URL} className="w-8 h-8 rounded-full mr-2 self-end mb-1 border border-gray-200 bg-white" alt="IA" />
+                                        <img src={LOGO_URL} className="w-8 h-8 rounded-full mr-2 self-end mb-1 border border-gray-200 bg-white" alt="Maximus" />
                                     )}
                                     <div className={`max-w-[85%] px-3 py-2 text-[15px] shadow-sm relative ${
                                         msg.role === 'user' 
@@ -309,7 +351,7 @@
                                             <div>
                                                 <div className="markdown-body text-gray-800 leading-snug" dangerouslySetInnerHTML={{__html: marked.parse(msg.content)}}></div>
                                                 
-                                                {/* Reproductor de Audio (Onyx) */}
+                                                {/* Reproductor Visual */}
                                                 {msg.audioId && (
                                                     <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
                                                         <div className={`audio-wave ${playingAudioId === msg.audioId ? 'speaking' : ''}`}>
@@ -319,7 +361,7 @@
                                                             onClick={() => replayAudio(msg.audioId)} 
                                                             className="text-xs font-bold text-gray-500 hover:text-pits-red flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md transition"
                                                         >
-                                                            <i className="ph-fill ph-speaker-high"></i> Escuchar
+                                                            <i className="ph-fill ph-speaker-high"></i> Repetir
                                                         </button>
                                                     </div>
                                                 )}
@@ -328,7 +370,6 @@
                                             <div className="text-gray-800">{msg.content}</div>
                                         )}
                                         
-                                        {/* Hora del mensaje (Simulada) */}
                                         <span className="text-[10px] text-gray-400 float-right mt-1 ml-3">
                                             {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                             {msg.role === 'user' && <i className="ph-fill ph-checks text-blue-500 ml-1"></i>}
@@ -347,13 +388,23 @@
                                     </div>
                                 </div>
                             )}
+
+                            {/* Indicador de Micrófono Activo */}
+                            {isListening && (
+                                <div className="text-center fade-in">
+                                    <span className="inline-flex items-center gap-2 bg-red-100 text-red-600 text-xs px-3 py-1.5 rounded-full font-bold shadow-sm">
+                                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                        Maximus te está escuchando...
+                                    </span>
+                                </div>
+                            )}
                             <div ref={bottomRef}></div>
                         </div>
 
-                        {/* Input Area (WhatsApp Style) */}
+                        {/* Input Area */}
                         <div className="bg-[#f0f2f5] p-3 flex items-end gap-2 shrink-0">
-                            <div className="flex-1 bg-white rounded-3xl flex items-end px-2 shadow-sm border border-transparent focus-within:border-gray-300">
-                                <button className="p-3 text-gray-500 hover:text-gray-700"><i className="ph ph-smiley text-2xl"></i></button>
+                            <div className="flex-1 bg-white rounded-3xl flex items-end px-2 shadow-sm border border-transparent focus-within:border-gray-300 relative overflow-hidden">
+                                <button className="p-3 text-gray-500 hover:text-gray-700"><i className="ph ph-wrench text-xl"></i></button>
                                 <textarea 
                                     value={query}
                                     onChange={e => setQuery(e.target.value)}
@@ -364,19 +415,26 @@
                                         }
                                     }}
                                     className="flex-1 max-h-32 min-h-[44px] py-3 px-2 focus:outline-none resize-none text-[15px] bg-transparent text-gray-800 placeholder:text-gray-500"
-                                    placeholder="Enviar un mensaje..."
+                                    placeholder={isListening ? "Habla ahora..." : "Escribe o usa el micrófono..."}
                                     rows="1"
-                                    disabled={loading}
+                                    disabled={loading || isListening}
                                 ></textarea>
-                                <button className="p-3 text-gray-500 hover:text-gray-700"><i className="ph ph-camera text-2xl"></i></button>
                             </div>
+                            
+                            {/* Botón Dinámico: Enviar Texto o Activar Micrófono */}
                             {query.trim() ? (
-                                <button onClick={handleSend} disabled={loading} className="w-12 h-12 bg-[#00a884] rounded-full flex items-center justify-center text-white shadow-md hover:bg-[#008f6f] transition shrink-0 transform active:scale-95">
+                                <button onClick={() => handleSend()} disabled={loading} className="w-12 h-12 bg-[#00a884] rounded-full flex items-center justify-center text-white shadow-md hover:bg-[#008f6f] transition shrink-0 transform active:scale-95">
                                     <i className="ph-fill ph-paper-plane-right text-xl ml-1"></i>
                                 </button>
                             ) : (
-                                <button className="w-12 h-12 bg-[#00a884] rounded-full flex items-center justify-center text-white shadow-md shrink-0 opacity-80 cursor-not-allowed">
-                                    <i className="ph-fill ph-microphone text-xl"></i>
+                                <button 
+                                    onClick={toggleMic} 
+                                    disabled={loading} 
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md shrink-0 transition transform active:scale-95 ${
+                                        isListening ? 'bg-red-500 animate-pulse scale-110' : 'bg-[#00a884] hover:bg-[#008f6f]'
+                                    }`}
+                                >
+                                    <i className={`ph-fill ${isListening ? 'ph-microphone-slash' : 'ph-microphone'} text-xl`}></i>
                                 </button>
                             )}
                         </div>
