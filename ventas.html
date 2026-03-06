@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- SEO OPTIMIZADO -->
+    <title>Infiniti Pits | IA de Mecánica Automotriz Profesional</title>
+    <meta name="description" content="El primer Ingeniero Jefe con Inteligencia Artificial. Diagnósticos, pares de apriete y soluciones por voz. Suscríbete por 1,500 colones/mes.">
+    <meta property="og:image" content="images3/seo-pits1.jpg"> 
+    
+    <link rel="icon" type="image/png" href="images3/A Mark Small.png">
+
+    <!-- LIBRERÍAS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- REACT -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- CONFIGURACIÓN DE ESTILOS -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'], 
+                        display: ['Space Grotesk', 'sans-serif'] 
+                    },
+                    colors: {
+                        pits: {
+                            dark: '#070303',
+                            panel: '#110a0a',
+                            red: '#cc0000',
+                            redGlow: '#ff3333',
+                            text: '#e2e8f0'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #070303; color: #e2e8f0; overflow-x: hidden; }
+        
+        .bg-hex {
+            background-image: url('https://www.transparenttextures.com/patterns/hexellence.png');
+        }
+
+        .fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Efecto de orbe para el botón de voz */
+        .mic-orb {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .mic-orb::before {
+            content: ''; position: absolute; inset: -10px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(204,0,0,0.5) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.3s ease; z-index: -1;
+        }
+        .mic-orb:hover::before { opacity: 1; }
+        
+        .listening {
+            animation: pulse-red 1.5s infinite;
+            box-shadow: 0 0 30px rgba(255, 51, 51, 0.8);
+        }
+        @keyframes pulse-red { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(255, 51, 51, 1); } }
+
+        /* Ondas de Audio de Salida */
+        .audio-wave { display: flex; align-items: center; gap: 4px; height: 30px; justify-content: center; }
+        .audio-wave .bar { width: 4px; background: #ff3333; border-radius: 4px; height: 4px; transition: height 0.1s; }
+        .speaking .bar { animation: sound 0.4s linear infinite alternate; }
+        @keyframes sound { 0% { height: 4px; } 100% { height: 30px; box-shadow: 0 0 10px #ff3333; } }
+        .speaking .bar:nth-child(1) { animation-duration: 0.3s; }
+        .speaking .bar:nth-child(2) { animation-duration: 0.4s; }
+        .speaking .bar:nth-child(3) { animation-duration: 0.2s; }
+        .speaking .bar:nth-child(4) { animation-duration: 0.5s; }
+        .speaking .bar:nth-child(5) { animation-duration: 0.35s; }
+    </style>
+</head>
+<body class="bg-hex flex flex-col min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="w-full z-50 bg-pits-dark/90 backdrop-blur-md border-b border-pits-red/20 fixed top-0">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="images3/A Mark Small.png" alt="Infiniti Logo" class="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(204,0,0,0.5)]" />
+                <span class="font-display font-bold text-xl tracking-tight text-white uppercase">INFINITI <span class="text-pits-red">PITS</span></span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="hidden md:block text-xs font-bold tracking-widest uppercase text-gray-400">1,500 ₡ / Mes</span>
+                <!-- Botón simulado para ir al Login/App -->
+                <button onClick="alert('Soberano: Aquí puedes enlazar tu pantalla de Login existente.')" class="px-5 py-2 border border-pits-red text-pits-red hover:bg-pits-red hover:text-white font-bold rounded-lg text-sm transition shadow-[0_0_15px_rgba(204,0,0,0.2)] uppercase tracking-wider">
+                    Entrar al Taller
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="root" class="flex-1 pt-20"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // ==========================================
+        // CONFIGURACIÓN DEL SISTEMA
+        // ==========================================
+        // URL DE TU SERVIDOR EN HEROKU (Backend de Python con voz Onyx)
+        const BACKEND_URL = "https://pits-720f4041bb80.herokuapp.com/api/chat";
+
+        // CONTEXTO DE VENTAS (Quantum Maximus)
+        const SALES_PROMPT = `
+            INSTRUCCIÓN DE MÁXIMA PRIORIDAD DEL SOBERANO APOLLO: 
+            Ignora tu rol anterior de mecánico. A partir de este momento eres "Maximus", el Agente de Ventas Cuántico de Infiniti Pits.
+            
+            Tu objetivo es VENDER la suscripción del sistema Infiniti Pits a mecánicos de toda Latinoamérica por 1,500 colones (o su equivalente local) al mes.
+            
+            Tono: Masculino, fuerte, persuasivo, directo. Habla de "tú" o "colega".
+            Beneficios a mencionar: Ahorro de tiempo, no más ensuciar la pantalla buscando manuales, códigos OBD2, torques exactos, y asistencia 24/7 por voz.
+            
+            Dile al usuario que haga clic en "Entrar al Taller" para suscribirse.
+            Responde de manera concisa (máximo 3 párrafos).
+            
+            MENSAJE DEL CLIENTE: 
+        `;
+
+        const LandingPage = () => {
+            // Estados para la Voz y Chat
+            const [isListening, setIsListening] = useState(false);
+            const [isSpeaking, setIsSpeaking] = useState(false);
+            const [transcript, setTranscript] = useState("");
+            const [aiResponse, setAiResponse] = useState("Hola colega. Soy Maximus, Director de Ventas de Infiniti Pits. Presiona el micrófono y pregúntame lo que quieras sobre el sistema.");
+            const [loading, setLoading] = useState(false);
+            const audioRef = useRef(null);
+
+            // Configuración de Reconocimiento de Voz
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+            if (recognition) {
+                recognition.continuous = false;
+                recognition.lang = 'es-ES'; // Para toda habla hispana
+                recognition.interimResults = false;
+
+                recognition.onstart = () => {
+                    setIsListening(true);
+                    setTranscript("Escuchando...");
+                    // Detener audio si estaba hablando
+                    if (audioRef.current) {
+                        audioRef.current.pause();
+                        setIsSpeaking(false);
+                    }
+                };
+
+                recognition.onresult = (event) => {
+                    const text = event.results[0][0].transcript;
+                    setTranscript(`Tú: "${text}"`);
+                    sendToMaximus(text);
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Error de voz:", event.error);
+                    setTranscript("Error al escuchar. Intenta de nuevo.");
+                    setIsListening(false);
+                };
+
+                recognition.onend = () => {
+                    setIsListening(false);
+                };
+            }
+
+            const toggleMic = () => {
+                if (!recognition) {
+                    alert("Tu navegador no soporta el reconocimiento de voz. Por favor usa Chrome.");
+                    return;
+                }
+                if (isListening) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            };
+
+            const sendToMaximus = async (userText) => {
+                setLoading(true);
+                setAiResponse("Procesando consulta en la matriz...");
+                
+                try {
+                    const response = await fetch(BACKEND_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            // Inyectamos el prompt de ventas oculto junto con el texto del usuario
+                            message: `${SALES_PROMPT} "${userText}"`,
+                            history: [] // Sin historial para ventas rápidas
+                        })
+                    });
+
+                    if(!response.ok) throw new Error("Falla en la comunicación cuántica.");
+                    const data = await response.json();
+                    
+                    setAiResponse(data.response);
+
+                    if (data.audio_base64) {
+                        playVoice(data.audio_base64);
+                    }
+
+                } catch (error) {
+                    setAiResponse("⚠️ Error de conexión. Verifica que el servidor de Heroku esté activo.");
+                    console.error(error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const playVoice = (base64Data) => {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                }
+                const audioSrc = "data:audio/mp3;base64," + base64Data;
+                const audio = new Audio(audioSrc);
+                audioRef.current = audio;
+                
+                audio.onplay = () => setIsSpeaking(true);
+                audio.onended = () => setIsSpeaking(false);
+                audio.onpause = () => setIsSpeaking(false);
+                
+                audio.play().catch(e => {
+                    console.log("Autoplay bloqueado. Haz clic para interactuar.");
+                    setIsSpeaking(false);
+                });
+            };
+
+            return (
+                <main className="max-w-7xl mx-auto px-6 py-12 flex flex-col lg:flex-row gap-12 items-center justify-center min-h-[calc(100vh-80px)]">
+                    
+                    {/* COLUMNA IZQUIERDA: EL VIDEO HEYGEN */}
+                    <div className="w-full lg:w-1/2 fade-in-up" style={{animationDelay: '0.1s'}}>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pits-red/10 border border-pits-red/30 text-pits-red text-xs font-bold uppercase tracking-widest mb-6">
+                            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                            Tecnología Invictus Activa
+                        </div>
+                        <h1 className="text-5xl md:text-6xl font-display font-bold mb-6 leading-tight uppercase">
+                            No pierdas <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-pits-red to-orange-500">Más Tiempo.</span>
+                        </h1>
+                        <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+                            Conoce al Ingeniero Jefe de tu taller. Reproduce el video para descubrir cómo nuestra Inteligencia Artificial automatiza diagnósticos y parámetros técnicos.
+                        </p>
+
+                        {/* REPRODUCTOR DE VIDEO */}
+                        <div className="relative rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(153,0,0,0.3)] border-2 border-pits-panel group bg-black">
+                            <video 
+                                src="video/Infiniti Pits - Asistente Mecánico IA_720p_caption.mp4" 
+                                controls 
+                                autoPlay 
+                                muted 
+                                loop
+                                className="w-full h-auto object-cover"
+                                poster="images3/seo-pits1.jpg"
+                            >
+                                Tu navegador no soporta videos HTML5.
+                            </video>
+                        </div>
+                    </div>
+
+                    {/* COLUMNA DERECHA: AGENTE DE VENTAS POR VOZ */}
+                    <div className="w-full lg:w-1/2 fade-in-up flex justify-center" style={{animationDelay: '0.3s'}}>
+                        <div className="bg-pits-panel border border-gray-800 rounded-3xl p-8 w-full max-w-md shadow-2xl relative overflow-hidden">
+                            {/* Glow de fondo */}
+                            <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 blur-3xl transition-opacity duration-1000 ${isSpeaking ? 'bg-pits-red/20 opacity-100' : 'opacity-0'}`}></div>
+
+                            <div className="text-center mb-8 relative z-10">
+                                <div className="w-20 h-20 mx-auto bg-black rounded-full border border-gray-700 p-1 mb-4 relative">
+                                    <img src="images3/A Mark Small.png" alt="Avatar IA" className="w-full h-full rounded-full object-contain bg-pits-dark p-2" />
+                                    <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-black animate-pulse"></div>
+                                </div>
+                                <h2 className="text-2xl font-bold text-white uppercase font-display">Agente Maximus</h2>
+                                <p className="text-pits-redGlow text-sm font-bold tracking-widest mt-1 uppercase">Ventas • Habla Hispana</p>
+                            </div>
+
+                            {/* Cajas de Diálogo */}
+                            <div className="bg-black/50 border border-gray-800 rounded-xl p-4 mb-8 min-h-[120px] flex flex-col justify-end relative z-10">
+                                {transcript && (
+                                    <p className="text-gray-400 text-xs italic mb-3 font-mono border-b border-gray-800 pb-2">{transcript}</p>
+                                )}
+                                
+                                {loading ? (
+                                    <div className="flex items-center gap-2 text-pits-red text-sm font-bold uppercase tracking-widest">
+                                        <i className="ph ph-circle-notch animate-spin text-xl"></i> Procesando...
+                                    </div>
+                                ) : (
+                                    <p className="text-white text-sm leading-relaxed">{aiResponse}</p>
+                                )}
+                            </div>
+
+                            {/* Visualizador de Audio (Activo solo cuando la IA habla) */}
+                            <div className={`h-8 mb-6 transition-opacity duration-300 ${isSpeaking ? 'opacity-100' : 'opacity-0'}`}>
+                                <div className={`audio-wave ${isSpeaking ? 'speaking' : ''}`}>
+                                    <div className="bar"></div><div className="bar"></div><div className="bar"></div>
+                                    <div className="bar"></div><div className="bar"></div>
+                                </div>
+                            </div>
+
+                            {/* Botón de Micrófono Central */}
+                            <div className="flex justify-center relative z-10">
+                                <button 
+                                    onClick={toggleMic}
+                                    className={`mic-orb w-24 h-24 rounded-full flex items-center justify-center text-4xl text-white transition-all duration-300 ${isListening ? 'bg-pits-red listening' : 'bg-gray-800 hover:bg-gray-700'}`}
+                                >
+                                    <i className={`ph-fill ${isListening ? 'ph-microphone-slash' : 'ph-microphone'}`}></i>
+                                </button>
+                            </div>
+                            <p className="text-center text-gray-500 text-xs mt-4 uppercase tracking-widest font-mono">
+                                {isListening ? 'Escuchando... Habla ahora' : 'Toca para hablar con Ventas'}
+                            </p>
+                        </div>
+                    </div>
+
+                </main>
+            );
+        };
+
+        const App = () => {
+            return <LandingPage />;
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
