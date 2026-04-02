@@ -1,118 +1,112 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INFINITI PITS | IA Automotriz Profesional</title>
+    <meta name="description" content="El primer Ingeniero Jefe con Inteligencia Artificial para talleres mecánicos y dueños de vehículos.">
     
-    <!-- ========================================== -->
-    <!-- SEO OPTIMIZADO PARA WHATSAPP Y REDES SOCIALES -->
-    <!-- ========================================== -->
-    <title>Infiniti Pits | Tu Asistente IA para Mecánica</title>
-    <meta name="description" content="Inteligencia Artificial avanzada para mecánicos y agencias de autos. Diagnósticos, torques y soluciones con voz en tiempo real.">
-    <meta name="theme-color" content="#990000">
-    
-    <!-- Open Graph / Facebook / WhatsApp -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://pits.infiniti-ia.com/"> <!-- Cambia por tu dominio real si es diferente -->
-    <meta property="og:title" content="Infiniti Pits | Asistente IA para Mecánica">
-    <meta property="og:description" content="Optimiza tu taller. Diagnósticos precisos, pares de apriete y soluciones mecánicas con comandos de voz. ¡Empieza tu chat gratis!">
-    <!-- IMAGEN SEO CARGADA -->
-    <meta property="og:image" content="https://pits.infiniti-ia.com/images3/seo-pits1.jpg"> 
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="Infiniti Pits">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Infiniti Pits | Asistente IA para Mecánica">
-    <meta name="twitter:description" content="Optimiza tu taller con IA. Diagnósticos, pares de apriete y soluciones al instante.">
-    <meta name="twitter:image" content="https://pits.infiniti-ia.com/images3/seo-pits1.jpg">
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="images3/A Mark Small.png">
-
-    <!-- LIBRERÍAS Y FUENTES -->
+    <!-- Librerías de Diseño e Iconos -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-    <!-- React -->
+    <!-- React Core -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Firebase -->
+    <!-- Firebase SDK (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
+    <!-- Configuración Tailwind -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { 
-                        sans: ['Inter', 'sans-serif'], 
-                        display: ['Space Grotesk', 'sans-serif'] 
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
                     },
                     colors: {
                         pits: {
-                            dark: '#0a0505',
-                            red: '#990000',
-                            bgChat: '#efeae2',
-                            msgUser: '#e7ffdb',
-                            msgAi: '#ffffff',
+                            dark: '#050b14',
+                            panel: '#0d1522',
+                            red: '#e11d48',     // Rojo mecánico/racing
+                            cyan: '#06b6d4',    // Cian tecnológico
+                            border: '#1e293b'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: 0, transform: 'translateY(10px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
                         }
                     }
                 }
             }
         }
     </script>
-    
+
     <style>
-        body { background-color: #0a0505; color: #ffffff; overflow-x: hidden; }
+        body { background-color: #050b14; color: #f8fafc; overflow-x: hidden; }
         
-        .bg-gears {
-            background-color: #0a0505;
-            background-image: radial-gradient(circle at 50% 0%, #330000 0%, transparent 70%), url('https://www.transparenttextures.com/patterns/black-scales.png');
+        .glass-panel {
+            background: rgba(13, 21, 34, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(30, 41, 59, 0.8);
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.8);
         }
 
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Estilos Markdown */
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: bold; margin-bottom: 0.5rem; color: #111; }
-        .markdown-body p { margin-bottom: 0.5rem; }
-        .markdown-body strong { color: #000; font-weight: 700; }
-        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
-        .markdown-body code { background: #f0f0f0; padding: 2px 4px; rounded: 4px; font-family: monospace; font-size: 0.9em; color: #990000; }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        .bg-hero {
+            background-image: linear-gradient(to right, #050b14 20%, rgba(5, 11, 20, 0.4) 100%), url('images3/portada.jpg');
+            background-size: cover;
+            background-position: center;
+        }
 
-        /* Animación de Audio */
-        .audio-wave { display: flex; align-items: center; gap: 2px; height: 15px; }
-        .audio-wave .bar { width: 3px; background: #990000; border-radius: 3px; height: 3px; transition: height 0.1s; }
-        .speaking .bar { animation: sound 0.5s linear infinite alternate; }
-        @keyframes sound { 0% { height: 3px; } 100% { height: 15px; } }
-        .speaking .bar:nth-child(1) { animation-duration: 0.4s; }
-        .speaking .bar:nth-child(2) { animation-duration: 0.3s; }
-        .speaking .bar:nth-child(3) { animation-duration: 0.5s; }
-        .speaking .bar:nth-child(4) { animation-duration: 0.2s; }
+        /* Fallback background if local image is missing */
+        .bg-hero-fallback {
+            background-image: linear-gradient(to right, #050b14 20%, rgba(5, 11, 20, 0.4) 100%), url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=2000&auto=format&fit=crop');
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050b14; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        /* Animación de carga (Typing) */
+        .typing-dot { animation: typing 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        
+        /* Markdown formatting */
+        .msg-content strong { color: #fff; font-weight: 700; }
+        .msg-content ul { list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
     </style>
 </head>
-<body class="bg-gears h-screen flex flex-col font-sans">
-    <div id="root" class="h-full flex flex-col"></div>
+<body class="antialiased selection:bg-pits-red selection:text-white">
+
+    <div id="root" class="w-full min-h-screen flex flex-col"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
         // ==========================================
-        // CONFIGURACIÓN DEL BACKEND
+        // 1. CONFIGURACIONES MAESTRAS
         // ==========================================
-        const BACKEND_URL = "https://pits-720f4041bb80.herokuapp.com/api/chat"; 
-        const LOGO_URL = "images3/A Mark Small.png";
-
-        // FIREBASE CONFIG
+        
+        // SOBERANO: Verifica tu API_URL del backend Python
+        const API_URL = "http://localhost:8000/api/chat"; // Cámbialo a tu Heroku en producción
+        
+        // SOBERANO: Coloca aquí tu Firebase Config de Pits
         const firebaseConfig = {
             apiKey: "AIzaSyDNSg33pfmXx4yPdsr_u6-tX7pukAQbvn4", 
             authDomain: "pits-382a0.firebaseapp.com",
@@ -122,337 +116,331 @@
             appId: "1:828002449733:web:69a5738bab59a3c52ce62c"
         };
 
+        let auth = null;
+        let isFirebaseActive = false;
+
         try {
-            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        } catch(e) { console.error("Firebase Error:", e); }
-
-        const audioCache = {};
+            if (firebaseConfig.apiKey !== "PON_TU_API_KEY_AQUI") {
+                firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                isFirebaseActive = true;
+            }
+        } catch (e) { console.error("Error Firebase:", e); }
 
         // ==========================================
-        // COMPONENTE: LOGIN
+        // COMPONENTE: PANTALLA DE LOGIN / LANDING
         // ==========================================
-        const LoginScreen = ({ onLogin }) => {
+        const LoginScreen = ({ onLoginSuccess }) => {
+            const [role, setRole] = useState('mechanic'); // 'mechanic' o 'owner'
             const [email, setEmail] = useState("");
             const [password, setPassword] = useState("");
             const [loading, setLoading] = useState(false);
+            const [error, setError] = useState("");
 
-            const handleLogin = async (e) => {
+            const handleSubmit = async (e) => {
                 e.preventDefault();
                 setLoading(true);
+                setError("");
+
                 try {
-                    const cred = await firebase.auth().signInWithEmailAndPassword(email, password);
-                    onLogin(cred.user);
-                } catch (error) {
-                    alert("Acceso denegado: " + error.message);
+                    if (isFirebaseActive && auth) {
+                        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                        onLoginSuccess(userCredential.user, role);
+                    } else {
+                        // MODO DEMO: Simula el login si no hay Firebase configurado
+                        setTimeout(() => {
+                            if(email) onLoginSuccess({ email }, role);
+                            else setError("Ingrese un correo válido.");
+                            setLoading(false);
+                        }, 1000);
+                    }
+                } catch (err) {
+                    setError("Credenciales inválidas. " + err.message);
                     setLoading(false);
                 }
             };
 
             return (
-                <div className="w-full h-full flex items-center justify-center relative p-4">
-                    <div className="bg-[#111111]/90 backdrop-blur-md p-10 rounded-3xl border border-pits-red/30 shadow-[0_0_50px_rgba(153,0,0,0.3)] w-full max-w-md relative z-10 fade-in text-center">
-                        <img src={LOGO_URL} alt="Infiniti Pits Logo" className="w-32 h-auto mx-auto mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
-                        <h1 className="text-3xl font-display font-bold tracking-tight text-white mb-1 uppercase">
-                            Infiniti <span className="text-pits-red">Pits</span>
-                        </h1>
-                        <p className="text-sm text-gray-400 mb-8">Acceso Taller Mecánico</p>
+                <div className="flex-1 flex bg-pits-dark relative overflow-hidden bg-hero-fallback bg-hero">
+                    {/* Capa de Oscurecimiento */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-pits-dark via-pits-dark/90 to-transparent"></div>
+
+                    <div className="relative z-10 w-full max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row items-center justify-between gap-12">
                         
-                        <form onSubmit={handleLogin} className="space-y-5">
-                            <div className="relative">
-                                <i className="ph ph-user absolute left-4 top-3.5 text-gray-400 text-lg"></i>
-                                <input type="email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-black/50 border border-gray-700 rounded-xl pl-12 pr-4 py-3.5 text-white focus:border-pits-red focus:ring-1 focus:ring-pits-red outline-none transition" placeholder="Correo del Mecánico" required />
+                        {/* Lado Izquierdo: Branding y Copy */}
+                        <div className="w-full md:w-1/2 animate-fade-in">
+                            <div className="flex items-center gap-3 mb-8">
+                                <img src="images3/A Mark Small.png" alt="Logo" className="w-12 h-12" onError={(e) => e.target.style.display='none'} />
+                                <h1 className="font-display font-black text-3xl tracking-widest text-white">INFINITI <span className="text-pits-red">PITS</span></h1>
                             </div>
-                            <div className="relative">
-                                <i className="ph ph-lock-key absolute left-4 top-3.5 text-gray-400 text-lg"></i>
-                                <input type="password" value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-black/50 border border-gray-700 rounded-xl pl-12 pr-4 py-3.5 text-white focus:border-pits-red focus:ring-1 focus:ring-pits-red outline-none transition" placeholder="Contraseña Segura" required />
+                            
+                            <h2 className="text-4xl md:text-6xl font-bold leading-tight text-white mb-6">
+                                El Cerebro de tu <br/>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pits-red to-orange-500">Taller Mecánico.</span>
+                            </h2>
+                            
+                            <p className="text-lg text-slate-400 mb-8 max-w-md leading-relaxed">
+                                Deja de perder tiempo buscando manuales. Nuestro Ingeniero Jefe con IA te da torques exactos, diagramas y diagnósticos OBD-2 en segundos.
+                            </p>
+
+                            <div className="flex items-center gap-4 text-sm font-mono text-slate-500">
+                                <span className="flex items-center gap-2"><i className="ph-fill ph-check-circle text-pits-red"></i> ALLDATA Incluido</span>
+                                <span className="flex items-center gap-2"><i className="ph-fill ph-check-circle text-pits-red"></i> Manuales Europeos</span>
                             </div>
-                            <button disabled={loading} className="w-full bg-gradient-to-r from-pits-red to-red-600 hover:from-red-600 hover:to-red-500 text-white font-bold py-4 rounded-xl transition shadow-lg shadow-red-900/50 flex justify-center items-center gap-2 uppercase tracking-wide mt-4">
-                                {loading ? <i className="ph ph-spinner animate-spin text-xl"></i> : <i className="ph ph-wrench text-xl"></i>} 
-                                {loading ? "Iniciando Sistema..." : "Entrar al Taller"}
-                            </button>
-                        </form>
+                        </div>
+
+                        {/* Lado Derecho: Panel de Login */}
+                        <div className="w-full md:w-5/12 animate-fade-in" style={{animationDelay: '0.2s'}}>
+                            <div className="glass-panel p-8 rounded-3xl shadow-2xl">
+                                <div className="text-center mb-8">
+                                    <h3 className="text-2xl font-bold text-white">Acceso al Sistema</h3>
+                                    <p className="text-sm text-slate-400 mt-2">Selecciona tu perfil operativo</p>
+                                </div>
+
+                                {/* SELECTOR DE ROL */}
+                                <div className="flex p-1 bg-black/50 rounded-xl mb-6 border border-pits-border relative">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setRole('owner')}
+                                        className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all duration-300 z-10 flex items-center justify-center gap-2 ${role === 'owner' ? 'bg-pits-cyan text-pits-dark shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'text-slate-400 hover:text-white'}`}
+                                    >
+                                        <i className="ph-fill ph-car-profile text-lg"></i> Dueño de Auto
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setRole('mechanic')}
+                                        className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all duration-300 z-10 flex items-center justify-center gap-2 ${role === 'mechanic' ? 'bg-pits-red text-white shadow-[0_0_15px_rgba(225,29,72,0.4)]' : 'text-slate-400 hover:text-white'}`}
+                                    >
+                                        <i className="ph-fill ph-wrench text-lg"></i> Taller Mecánico
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleSubmit} className="space-y-5">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Correo Electrónico</label>
+                                        <div className="relative">
+                                            <i className="ph ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg"></i>
+                                            <input 
+                                                type="email" required value={email} onChange={e=>setEmail(e.target.value)} 
+                                                className="w-full bg-pits-dark border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-red transition"
+                                                placeholder="taller@ejemplo.com"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Contraseña</label>
+                                        <div className="relative">
+                                            <i className="ph ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg"></i>
+                                            <input 
+                                                type="password" required value={password} onChange={e=>setPassword(e.target.value)} 
+                                                className="w-full bg-pits-dark border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-red transition"
+                                                placeholder="••••••••"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {error && <div className="p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-xs text-red-400 text-center">{error}</div>}
+
+                                    <button disabled={loading} type="submit" className={`w-full py-4 text-white font-bold rounded-xl shadow-lg transition transform hover:-translate-y-1 disabled:opacity-50 flex items-center justify-center gap-2 ${role === 'mechanic' ? 'bg-pits-red hover:bg-rose-700 shadow-pits-red/30' : 'bg-pits-cyan text-pits-dark hover:bg-cyan-400 shadow-pits-cyan/30'}`}>
+                                        {loading ? <i className="ph ph-spinner-gap animate-spin text-xl"></i> : <i className="ph-bold ph-sign-in text-xl"></i>}
+                                        {loading ? "VERIFICANDO..." : "INGRESAR AL SISTEMA"}
+                                    </button>
+                                </form>
+                                
+                                <p className="text-center text-xs text-slate-500 mt-6">Protegido por Infiniti Security Matrix</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
         };
 
         // ==========================================
-        // COMPONENTE: DASHBOARD (CHAT + VOZ)
+        // COMPONENTE: CONSOLA DE DIAGNÓSTICO (CHAT)
         // ==========================================
-        const Dashboard = ({ user, onLogout }) => {
-            const [query, setQuery] = useState("");
-            const [messages, setMessages] = useState([
-                { role: 'ai', content: "¡Hola, colega! Soy **Maximus**, el Ingeniero Jefe de Infiniti Pits.\nPresiona el micrófono para hablar o escríbeme. ¿Qué vehículo vamos a diagnosticar hoy?" }
-            ]);
+        const ChatInterface = ({ user, role, onLogout }) => {
+            
+            // Textos y colores adaptados al rol
+            const isMechanic = role === 'mechanic';
+            const themeColor = isMechanic ? 'pits-red' : 'pits-cyan';
+            const welcomeMsg = isMechanic 
+                ? `Sistemas en línea, Colega.\nAcceso total a manuales europeos (ISTA, ElsaWin, WIS) y ALLDATA. Solicita torques, códigos DTC o diagramas exactos.`
+                : `¡Hola! Soy la IA de Infiniti Pits.\nComo dueño del vehículo, estoy aquí para explicarte de forma sencilla el mantenimiento, averías o qué decirle a tu taller. ¿Qué le duele a tu auto hoy?`;
+
+            const [messages, setMessages] = useState([{ role: 'ai', content: welcomeMsg }]);
+            const [input, setInput] = useState("");
             const [loading, setLoading] = useState(false);
-            const [playingAudioId, setPlayingAudioId] = useState(null);
-            
-            // Estados para el micrófono
-            const [isListening, setIsListening] = useState(false);
-            
             const bottomRef = useRef(null);
-            const audioRef = useRef(null);
-            
-            // Configuración de Web Speech API
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 
-            if (recognition) {
-                recognition.continuous = false;
-                recognition.lang = 'es-ES'; // Habla hispana
-                recognition.interimResults = false;
+            useEffect(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), [messages]);
 
-                recognition.onstart = () => {
-                    setIsListening(true);
-                    if (audioRef.current) {
-                        audioRef.current.pause();
-                        setPlayingAudioId(null);
-                    }
-                };
-
-                recognition.onresult = (event) => {
-                    const text = event.results[0][0].transcript;
-                    handleSend(text); // Envía automáticamente lo que escuchó
-                };
-
-                recognition.onerror = (event) => {
-                    console.error("Error de micrófono:", event.error);
-                    setIsListening(false);
-                };
-
-                recognition.onend = () => {
-                    setIsListening(false);
-                };
-            }
-
-            useEffect(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), [messages, loading, isListening]);
-
-            const toggleMic = () => {
-                if (!recognition) {
-                    alert("Tu navegador no soporta entrada de voz. Te recomiendo usar Google Chrome.");
-                    return;
-                }
-                if (isListening) {
-                    recognition.stop();
-                } else {
-                    recognition.start();
-                }
-            };
-
-            // Lógica de envío unificada (Texto o Voz)
-            const handleSend = async (textToSend = query) => {
-                if(!textToSend.trim()) return;
+            const sendMessage = async () => {
+                if (!input.trim()) return;
                 
-                const userMsg = { role: 'user', content: textToSend };
-                setMessages(prev => [...prev, userMsg]);
-                
-                // Limpiar input solo si fue escrito a mano
-                if(textToSend === query) setQuery(""); 
-                
+                const newMsg = { role: 'user', content: input };
+                setMessages(prev => [...prev, newMsg]);
+                setInput("");
                 setLoading(true);
 
-                if (audioRef.current) {
-                    audioRef.current.pause();
-                    setPlayingAudioId(null);
-                }
-
                 try {
-                    // INYECCIÓN DE PERSONALIDAD MAXIMUS
-                    const MAXIMUS_PROMPT = `INSTRUCCIÓN DE ROL: Tu nombre es Maximus, el Ingeniero en Jefe de Mecánica Automotriz de Infiniti Pits. Responde a la siguiente consulta del mecánico con autoridad, lenguaje técnico, precisión y masculinidad. Ve directo al grano.\n\nCONSULTA DEL MECÁNICO: `;
-
-                    const response = await fetch(BACKEND_URL, {
+                    const response = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            message: MAXIMUS_PROMPT + textToSend, 
-                            history: messages.slice(-6).map(m => ({
-                                role: m.role === 'ai' ? 'model' : 'user',
-                                content: m.content
-                            }))
+                        body: JSON.stringify({
+                            message: newMsg.content,
+                            user_type: role, // EL CÓDIGO MAESTRO DE ROL
+                            history: messages.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.content }))
                         })
                     });
 
-                    if(!response.ok) throw new Error("Fallo en el cerebro central de la IA");
+                    if (!response.ok) throw new Error("Error en la matriz del servidor.");
+
                     const data = await response.json();
-                    
-                    // En caso de que la IA repita la instrucción (limpieza de texto)
-                    let cleanText = data.response.replace(/INSTRUCCIÓN DE ROL:.*?CONSULTA DEL MECÁNICO: /i, '').trim();
+                    setMessages(prev => [...prev, { role: 'ai', content: data.response }]);
 
-                    const newAiMsg = { role: 'ai', content: cleanText };
-                    
-                    if (data.audio_base64) {
-                        const audioId = 'audio-' + Date.now();
-                        audioCache[audioId] = data.audio_base64;
-                        newAiMsg.audioId = audioId;
-                        playVoice(data.audio_base64, audioId);
-                    }
-
-                    setMessages(prev => [...prev, newAiMsg]);
-
-                } catch (e) {
-                    setMessages(prev => [...prev, { role: 'ai', content: `⚠️ Error de comunicación cuántica: ${e.message}` }]);
+                } catch (error) {
+                    console.error(error);
+                    setMessages(prev => [...prev, { role: 'ai', content: `⚠️ **Error de conexión:** No me pude comunicar con el servidor central. Verifica que el backend esté activo.` }]);
                 } finally {
                     setLoading(false);
                 }
             };
 
-            const playVoice = (base64Data, id) => {
-                if (audioRef.current) {
-                    audioRef.current.pause();
-                }
-                const audioSrc = "data:audio/mp3;base64," + base64Data;
-                const audio = new Audio(audioSrc);
-                audioRef.current = audio;
-                
-                audio.onplay = () => setPlayingAudioId(id);
-                audio.onended = () => setPlayingAudioId(null);
-                audio.onpause = () => setPlayingAudioId(null);
-                
-                audio.play().catch(e => console.log("Autoplay bloqueado por el navegador."));
-            };
-
-            const replayAudio = (id) => {
-                if (audioCache[id]) playVoice(audioCache[id], id);
-            };
-
             return (
-                <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-12 relative">
-                    <div className="w-full h-full md:max-w-2xl bg-white md:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border-[8px] border-[#222] md:border-[#1a1a1a]">
-                        
-                        {/* Header WhatsApp */}
-                        <header className="bg-white border-b border-gray-200 h-16 flex items-center px-4 shrink-0 shadow-sm z-10">
-                            <button className="text-gray-500 hover:text-black mr-2"><i className="ph ph-caret-left text-2xl"></i></button>
-                            <img src={LOGO_URL} alt="Logo" className="w-10 h-10 rounded-full object-contain p-1 border border-gray-200 bg-gray-50" />
-                            <div className="ml-3 flex-1">
-                                <h2 className="font-bold text-gray-900 text-lg leading-tight">Agente Maximus</h2>
-                                <p className="text-xs text-green-600 font-medium">Ingeniero Jefe (En Línea)</p>
+                <div className="flex-1 flex flex-col h-screen bg-pits-dark animate-fade-in relative">
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none"></div>
+                    
+                    {/* HEADER */}
+                    <header className={`h-16 md:h-20 glass-panel border-b border-${themeColor}/30 flex items-center justify-between px-6 relative z-20 shrink-0`}>
+                        <div className="flex items-center gap-3 md:gap-4">
+                            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full bg-${themeColor} flex items-center justify-center shadow-[0_0_15px_rgba(${isMechanic ? '225,29,72' : '6,182,212'},0.5)]`}>
+                                <i className={`ph-fill ${isMechanic ? 'ph-engine' : 'ph-car-profile'} ${isMechanic ? 'text-white' : 'text-pits-dark'} text-2xl`}></i>
                             </div>
-                            <button onClick={onLogout} className="text-gray-400 hover:text-red-500 p-2" title="Cerrar Sesión"><i className="ph ph-sign-out text-xl"></i></button>
-                        </header>
-
-                        {/* Chat Body */}
-                        <div className="flex-1 bg-pits-bgChat overflow-y-auto p-4 space-y-4 relative bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-                            
-                            <div className="text-center my-4">
-                                <span className="bg-[#e1e8e4] text-[#54656f] text-xs px-3 py-1 rounded-lg shadow-sm font-bold">Conexión Segura Activa</span>
+                            <div>
+                                <h1 className={`font-display font-bold text-lg md:text-xl tracking-wider text-white`}>
+                                    INFINITI <span className={`text-${themeColor}`}>PITS</span>
+                                </h1>
+                                <p className={`text-[10px] md:text-xs font-mono uppercase tracking-widest text-${themeColor}`}>
+                                    {isMechanic ? 'Terminal Profesional' : 'Asistencia Propietario'}
+                                </p>
                             </div>
-
-                            {messages.map((msg, i) => (
-                                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} fade-in`}>
-                                    {msg.role === 'ai' && (
-                                        <img src={LOGO_URL} className="w-8 h-8 rounded-full mr-2 self-end mb-1 border border-gray-200 bg-white" alt="Maximus" />
-                                    )}
-                                    <div className={`max-w-[85%] px-3 py-2 text-[15px] shadow-sm relative ${
-                                        msg.role === 'user' 
-                                        ? 'bg-pits-msgUser text-black rounded-l-xl rounded-tr-xl rounded-br-sm' 
-                                        : 'bg-pits-msgAi text-black rounded-r-xl rounded-tl-xl rounded-bl-sm border border-gray-100'
-                                    }`}>
-                                        {msg.role === 'ai' ? (
-                                            <div>
-                                                <div className="markdown-body text-gray-800 leading-snug" dangerouslySetInnerHTML={{__html: marked.parse(msg.content)}}></div>
-                                                
-                                                {/* Reproductor Visual */}
-                                                {msg.audioId && (
-                                                    <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between">
-                                                        <div className={`audio-wave ${playingAudioId === msg.audioId ? 'speaking' : ''}`}>
-                                                            <div className="bar"></div><div className="bar"></div><div className="bar"></div><div className="bar"></div>
-                                                        </div>
-                                                        <button 
-                                                            onClick={() => replayAudio(msg.audioId)} 
-                                                            className="text-xs font-bold text-gray-500 hover:text-pits-red flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-md transition"
-                                                        >
-                                                            <i className="ph-fill ph-speaker-high"></i> Repetir
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <div className="text-gray-800">{msg.content}</div>
-                                        )}
-                                        
-                                        <span className="text-[10px] text-gray-400 float-right mt-1 ml-3">
-                                            {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                            {msg.role === 'user' && <i className="ph-fill ph-checks text-blue-500 ml-1"></i>}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                            
-                            {loading && (
-                                <div className="flex justify-start">
-                                    <img src={LOGO_URL} className="w-8 h-8 rounded-full mr-2 self-end mb-1 opacity-50" />
-                                    <div className="bg-white p-3 rounded-r-xl rounded-tl-xl rounded-bl-sm shadow-sm flex gap-1 items-center h-10">
-                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
-                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-100"></span>
-                                        <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-200"></span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Indicador de Micrófono Activo */}
-                            {isListening && (
-                                <div className="text-center fade-in">
-                                    <span className="inline-flex items-center gap-2 bg-red-100 text-red-600 text-xs px-3 py-1.5 rounded-full font-bold shadow-sm">
-                                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                                        Maximus te está escuchando...
-                                    </span>
-                                </div>
-                            )}
-                            <div ref={bottomRef}></div>
                         </div>
-
-                        {/* Input Area */}
-                        <div className="bg-[#f0f2f5] p-3 flex items-end gap-2 shrink-0">
-                            <div className="flex-1 bg-white rounded-3xl flex items-end px-2 shadow-sm border border-transparent focus-within:border-gray-300 relative overflow-hidden">
-                                <button className="p-3 text-gray-500 hover:text-gray-700"><i className="ph ph-wrench text-xl"></i></button>
-                                <textarea 
-                                    value={query}
-                                    onChange={e => setQuery(e.target.value)}
-                                    onKeyDown={e => {
-                                        if(e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleSend();
-                                        }
-                                    }}
-                                    className="flex-1 max-h-32 min-h-[44px] py-3 px-2 focus:outline-none resize-none text-[15px] bg-transparent text-gray-800 placeholder:text-gray-500"
-                                    placeholder={isListening ? "Habla ahora..." : "Escribe o usa el micrófono..."}
-                                    rows="1"
-                                    disabled={loading || isListening}
-                                ></textarea>
+                        <div className="flex items-center gap-4">
+                            <div className="hidden md:flex flex-col text-right">
+                                <span className="text-xs text-white font-bold">{user.email}</span>
+                                <span className="text-[10px] text-green-400 font-mono"><i className="ph-fill ph-circle"></i> ONLINE</span>
                             </div>
-                            
-                            {/* Botón Dinámico: Enviar Texto o Activar Micrófono */}
-                            {query.trim() ? (
-                                <button onClick={() => handleSend()} disabled={loading} className="w-12 h-12 bg-[#00a884] rounded-full flex items-center justify-center text-white shadow-md hover:bg-[#008f6f] transition shrink-0 transform active:scale-95">
-                                    <i className="ph-fill ph-paper-plane-right text-xl ml-1"></i>
-                                </button>
-                            ) : (
-                                <button 
-                                    onClick={toggleMic} 
-                                    disabled={loading} 
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-md shrink-0 transition transform active:scale-95 ${
-                                        isListening ? 'bg-red-500 animate-pulse scale-110' : 'bg-[#00a884] hover:bg-[#008f6f]'
-                                    }`}
-                                >
-                                    <i className={`ph-fill ${isListening ? 'ph-microphone-slash' : 'ph-microphone'} text-xl`}></i>
-                                </button>
-                            )}
+                            <button onClick={onLogout} className="text-slate-400 hover:text-white transition w-10 h-10 flex items-center justify-center rounded-full bg-slate-800/50 hover:bg-slate-700" title="Cerrar Sesión">
+                                <i className="ph ph-sign-out text-xl"></i>
+                            </button>
                         </div>
+                    </header>
 
-                    </div>
+                    {/* ÁREA DE CHAT */}
+                    <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 relative z-10">
+                        {messages.map((msg, i) => (
+                            <div key={i} className={`flex gap-4 max-w-4xl mx-auto ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                                
+                                <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center shadow-lg ${msg.role === 'user' ? 'bg-slate-700 text-white' : `bg-${themeColor} ${isMechanic ? 'text-white' : 'text-pits-dark'} shadow-[0_0_15px_rgba(${isMechanic ? '225,29,72' : '6,182,212'},0.4)]`}`}>
+                                    <i className={`ph-fill ${msg.role === 'user' ? 'ph-user' : 'ph-robot'} text-xl`}></i>
+                                </div>
+                                
+                                <div className={`msg-content p-5 rounded-2xl text-sm md:text-base leading-relaxed ${
+                                    msg.role === 'user' 
+                                    ? `bg-slate-800 text-white rounded-tr-none border border-slate-700` 
+                                    : `glass-panel text-slate-200 rounded-tl-none border-l-2 border-l-${themeColor}`
+                                }`}>
+                                    <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") }}></div>
+                                </div>
+
+                            </div>
+                        ))}
+
+                        {loading && (
+                            <div className="flex gap-4 max-w-4xl mx-auto">
+                                <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center shadow-lg opacity-50 bg-${themeColor} ${isMechanic ? 'text-white' : 'text-pits-dark'}`}>
+                                    <i className="ph-fill ph-robot text-xl"></i>
+                                </div>
+                                <div className={`glass-panel px-5 py-4 rounded-2xl rounded-tl-none flex items-center gap-2 border-l-2 border-l-${themeColor}`}>
+                                    <div className={`w-2 h-2 rounded-full bg-${themeColor} typing-dot`}></div>
+                                    <div className={`w-2 h-2 rounded-full bg-${themeColor} typing-dot`}></div>
+                                    <div className={`w-2 h-2 rounded-full bg-${themeColor} typing-dot`}></div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={bottomRef}></div>
+                    </main>
+
+                    {/* INPUT AREA */}
+                    <footer className="glass-panel p-4 md:p-6 border-t border-pits-border relative z-20 shrink-0">
+                        <div className="max-w-4xl mx-auto relative flex items-end gap-3 bg-black/60 border border-slate-700/50 rounded-2xl p-2 focus-within:border-slate-500 transition-colors shadow-inner">
+                            <textarea 
+                                value={input}
+                                onChange={e => setInput(e.target.value)}
+                                onKeyDown={e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                                rows="1" 
+                                className="w-full bg-transparent text-white outline-none resize-none p-3 max-h-32 text-sm md:text-base font-sans" 
+                                placeholder={isMechanic ? "Ej: Torque de culata para BMW 328i 2018..." : "Ej: Mi carro vibra al frenar, ¿qué puede ser?"}
+                                disabled={loading}
+                            ></textarea>
+                            <button 
+                                onClick={sendMessage}
+                                disabled={loading || !input.trim()}
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shadow-lg hover:scale-105 shrink-0 mb-1 mr-1 disabled:opacity-50 disabled:hover:scale-100 ${isMechanic ? 'bg-pits-red text-white hover:bg-rose-600' : 'bg-pits-cyan text-pits-dark hover:bg-cyan-400'}`}
+                            >
+                                <i className="ph-bold ph-paper-plane-right text-xl"></i>
+                            </button>
+                        </div>
+                        <p className="text-center text-[10px] text-slate-500 mt-3 font-mono uppercase tracking-widest">Infiniti Pits OS &copy; 2026</p>
+                    </footer>
                 </div>
             );
         };
 
+        // ==========================================
+        // APP PRINCIPAL (ENRUTADOR DE ESTADO)
+        // ==========================================
         const App = () => {
             const [user, setUser] = useState(null);
+            const [role, setRole] = useState('mechanic');
+
+            // Efecto de Auto-Login si hay sesión guardada en Firebase
             useEffect(() => {
-                const unsubscribe = firebase.auth().onAuthStateChanged(u => setUser(u || null));
-                return () => unsubscribe();
+                if (isFirebaseActive && auth) {
+                    const unsubscribe = auth.onAuthStateChanged((u) => {
+                        if (u) {
+                            // En un sistema real, el rol podría venir de Firestore. 
+                            // Aquí usamos localStorage para mantener la selección de la sesión.
+                            const savedRole = localStorage.getItem('infiniti_pits_role') || 'mechanic';
+                            setRole(savedRole);
+                            setUser(u);
+                        } else {
+                            setUser(null);
+                        }
+                    });
+                    return () => unsubscribe();
+                }
             }, []);
+
+            const handleLoginSuccess = (userData, selectedRole) => {
+                localStorage.setItem('infiniti_pits_role', selectedRole);
+                setRole(selectedRole);
+                setUser(userData);
+            };
+
+            const handleLogout = async () => {
+                if (isFirebaseActive && auth) await auth.signOut();
+                localStorage.removeItem('infiniti_pits_role');
+                setUser(null);
+            };
+
             return (
                 <React.Fragment>
-                    {!user ? <LoginScreen onLogin={setUser} /> : <Dashboard user={user} onLogout={() => firebase.auth().signOut()} />}
+                    {!user ? (
+                        <LoginScreen onLoginSuccess={handleLoginSuccess} />
+                    ) : (
+                        <ChatInterface user={user} role={role} onLogout={handleLogout} />
+                    )}
                 </React.Fragment>
             );
         };
