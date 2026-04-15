@@ -5,24 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- ========================================== -->
-    <!-- 🚀 SEO & INTERNATIONAL METADATA (US MARKET) -->
+    <!-- 🚀 QUANTUM SEO & INTERNATIONAL METADATA    -->
     <!-- ========================================== -->
     <title>INFINITI PITS | Professional Automotive AI</title>
     <meta name="description" content="The first AI Chief Engineer for auto repair shops and vehicle owners. Instant OBD2 diagnostics, torque specs, and ALLDATA level manuals.">
-    <meta name="keywords" content="Automotive AI, AI mechanic, OBD2 scanner, torque specs, repair manuals, Infiniti Pits, auto repair software, ALLDATA, UTV repair, motorcycle repair">
+    <meta name="keywords" content="Automotive AI, AI mechanic, OBD2 scanner, torque specs, repair manuals, Infiniti Pits, auto repair software, ALLDATA, USA">
     <meta name="author" content="Apollo Sol Invictus - W Studio">
     <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://pits.infiniti-ia.com/usa.html">
 
-    <!-- Tailwind CSS & Phosphor Icons -->
+    <!-- Open Graph / Facebook / WhatsApp (Generates preview with image) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pits.infiniti-ia.com/usa.html">
+    <meta property="og:title" content="INFINITI PITS | The Brain of your Auto Repair Shop">
+    <meta property="og:description" content="Speed up your diagnostic time. Instant access to torque specs, manuals, and advanced OBD2 troubleshooting.">
+    <meta property="og:image" content="https://pits.infiniti-ia.com/images3/seo-pits1.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="INFINITI PITS by W Studio">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="INFINITI PITS | Automotive AI">
+    <meta name="twitter:description" content="Instant OBD2 diagnostics, torque specs, and workshop manuals. The AI assistant for mechanics.">
+    <meta name="twitter:image" content="https://pits.infiniti-ia.com/images3/seo-pits1.jpg">
+
+    <!-- ========================================== -->
+    <!-- 🚀 OFFICIAL FAVICONS                       -->
+    <!-- ========================================== -->
+    <link rel="icon" type="image/png" sizes="96x96" href="my-favicon/favicon-96x96.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="my-favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/svg+xml" href="my-favicon/favicon.svg">
+    <link rel="shortcut icon" href="my-favicon/favicon.ico">
+    <link rel="manifest" href="my-favicon/site.webmanifest">
+
+    <!-- Design Libraries & Icons -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- React & Babel -->
+    <!-- React Core -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Google Fonts: Space Grotesk (Tech) & Inter (Readability) -->
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <script>
@@ -37,19 +67,24 @@
                         pits: {
                             dark: '#0a0a0a',     
                             panel: '#171717',    
-                            primary: '#dc2626',  // Red (Automotive warning/action)
-                            accent: '#fca5a5',   // Light red
+                            primary: '#dc2626',  
+                            accent: '#fca5a5',   
                             text: '#f5f5f5',
                             border: '#262626'
                         }
                     },
                     animation: {
                         'pulse-glow': 'pulseGlow 2s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
                     },
                     keyframes: {
                         pulseGlow: {
                             '0%, 100%': { boxShadow: '0 0 10px rgba(220, 38, 38, 0.2)' },
                             '50%': { boxShadow: '0 0 20px rgba(220, 38, 38, 0.6)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: 0, transform: 'translateY(10px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
                         }
                     }
                 }
@@ -65,7 +100,8 @@
         
         .glass-panel {
             background: rgba(23, 23, 23, 0.8);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(220, 38, 38, 0.15);
         }
     </style>
@@ -78,86 +114,156 @@
         const { useState, useEffect, useRef } = React;
 
         // ==========================================
-        // 1. LOGIN & ROLE SELECTION SCREEN
+        // 1. FIREBASE CONFIGURATION
+        // SOBERANO: Insert your Firebase credentials here
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNSg33pfmXx4yPdsr_u6-tX7pukAQbvn4", 
+            authDomain: "pits-382a0.firebaseapp.com",
+            projectId: "pits-382a0",
+            storageBucket: "pits-382a0.firebasestorage.app",
+            messagingSenderId: "828002449733",
+            appId: "1:828002449733:web:69a5738bab59a3c52ce62c"
+        };
+
+        let auth = null;
+        let isFirebaseActive = false;
+
+        try {
+            if (firebaseConfig.apiKey !== "") {
+                firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                isFirebaseActive = true;
+            }
+        } catch (e) { console.error("Firebase Error:", e); }
+
+        // ==========================================
+        // 2. LOGIN SCREEN (SALES BRIDGE & ROLE SELECTION)
         // ==========================================
         const LoginScreen = ({ onLoginSuccess }) => {
-            const [selectedRole, setSelectedRole] = useState(null);
+            const [selectedRole, setSelectedRole] = useState("mechanic"); // Default to mechanic
+            const [email, setEmail] = useState("");
+            const [password, setPassword] = useState("");
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState("");
 
-            const handleLogin = () => {
-                if(selectedRole) {
-                    onLoginSuccess({ name: "User" }, selectedRole);
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError("");
+
+                try {
+                    if (isFirebaseActive) {
+                        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                        onLoginSuccess(userCredential.user, selectedRole);
+                    } else {
+                        // DEMO/BYPASS MODE (If Firebase is not configured)
+                        if (email.includes("@")) {
+                            setTimeout(() => {
+                                onLoginSuccess({ email: email, uid: "demo-123" }, selectedRole);
+                            }, 1000);
+                        } else {
+                            setError("Please enter a valid email address.");
+                            setLoading(false);
+                        }
+                    }
+                } catch (err) {
+                    setError("Incorrect credentials or unregistered user.");
+                    setLoading(false);
                 }
             };
 
             return (
-                <div className="min-h-screen flex items-center justify-center p-4 bg-[url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center">
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+                <div className="min-h-screen flex items-center justify-center p-4 bg-[url('images3/portada.jpg')] bg-cover bg-center relative">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-0"></div>
                     
-                    <div className="glass-panel p-8 md:p-12 rounded-2xl w-full max-w-2xl relative z-10 shadow-2xl animate-[fadeIn_0.5s_ease-out]">
-                        <div className="text-center mb-10">
-                            <div className="w-16 h-16 bg-pits-primary rounded-xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(220,38,38,0.5)]">
-                                <i className="ph-fill ph-engine text-3xl text-white"></i>
-                            </div>
-                            <h1 className="text-4xl font-display font-bold tracking-tight mb-2 uppercase">Infiniti Pits</h1>
-                            <p className="text-pits-accent text-sm font-mono tracking-widest uppercase">Quantum Automotive Intelligence</p>
+                    <div className="glass-panel p-8 md:p-10 rounded-3xl w-full max-w-md relative z-10 shadow-2xl animate-fade-in border-t-2 border-t-pits-primary">
+                        
+                        <div className="text-center mb-8">
+                            <img src="images3/A Mark Small.png" alt="Infiniti Logo" className="w-16 h-16 mx-auto mb-4 object-contain" />
+                            <h1 className="text-3xl font-display font-bold tracking-tight mb-1 uppercase">INFINITI PITS</h1>
+                            <p className="text-pits-accent text-xs font-mono tracking-widest uppercase">Authorized Access</p>
                         </div>
 
-                        <h2 className="text-center text-gray-400 mb-6">Select your workspace profile:</h2>
-
-                        <div className="grid md:grid-cols-2 gap-6 mb-8">
-                            {/* Pro Mechanic Role */}
-                            <div 
-                                onClick={() => setSelectedRole('mechanic')}
-                                className={`cursor-pointer p-6 rounded-xl border-2 transition-all duration-300 flex flex-col items-center text-center ${selectedRole === 'mechanic' ? 'border-pits-primary bg-pits-primary/10' : 'border-pits-border bg-pits-panel hover:border-pits-primary/50'}`}
-                            >
-                                <i className="ph-duotone ph-wrench text-4xl mb-3 text-pits-accent"></i>
-                                <h3 className="font-bold text-lg mb-2">Pro Mechanic</h3>
-                                <p className="text-xs text-gray-400">Access to ALLDATA, European Manuals, Torques, OBD2, Motorcycles & UTV/ATVs.</p>
+                        <form onSubmit={handleLogin} className="space-y-5">
+                            
+                            {/* ROLE SELECTION TOGGLE */}
+                            <div className="flex bg-black/50 p-1 rounded-xl mb-6 border border-pits-border">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedRole('mechanic')}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition duration-300 ${selectedRole === 'mechanic' ? 'bg-pits-primary text-white shadow-[0_0_10px_rgba(220,38,38,0.5)]' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    <i className="ph-fill ph-wrench mr-1"></i> Mechanic
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedRole('owner')}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition duration-300 ${selectedRole === 'owner' ? 'bg-blue-600 text-white shadow-[0_0_10px_rgba(37,99,235,0.5)]' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    <i className="ph-fill ph-car-profile mr-1"></i> Car Owner
+                                </button>
                             </div>
 
-                            {/* Vehicle Owner Role */}
-                            <div 
-                                onClick={() => setSelectedRole('owner')}
-                                className={`cursor-pointer p-6 rounded-xl border-2 transition-all duration-300 flex flex-col items-center text-center ${selectedRole === 'owner' ? 'border-pits-primary bg-pits-primary/10' : 'border-pits-border bg-pits-panel hover:border-pits-primary/50'}`}
-                            >
-                                <i className="ph-duotone ph-car-profile text-4xl mb-3 text-pits-accent"></i>
-                                <h3 className="font-bold text-lg mb-2">Vehicle Owner</h3>
-                                <p className="text-xs text-gray-400">Simple diagnostics, dashboard light meanings, and basic maintenance advice.</p>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Email Address</label>
+                                <div className="relative">
+                                    <i className="ph ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
+                                    <input 
+                                        type="email" required value={email} onChange={e=>setEmail(e.target.value)} 
+                                        className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-primary focus:ring-1 focus:ring-pits-primary transition"
+                                        placeholder="shop@example.com"
+                                    />
+                                </div>
                             </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Password</label>
+                                <div className="relative">
+                                    <i className="ph ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
+                                    <input 
+                                        type="password" required value={password} onChange={e=>setPassword(e.target.value)} 
+                                        className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-primary focus:ring-1 focus:ring-pits-primary transition"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
+
+                            {error && <div className="p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-xs text-red-400 text-center font-mono">{error}</div>}
+
+                            <button disabled={loading} type="submit" className="w-full py-4 bg-pits-primary hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-pits-primary/30 hover:shadow-pits-primary/50 transition transform hover:-translate-y-1 disabled:opacity-50 uppercase tracking-widest text-sm">
+                                {loading ? <i className="ph ph-spinner-gap animate-spin text-xl"></i> : "Log In"}
+                            </button>
+                        </form>
+
+                        {/* SALES CALL TO ACTION */}
+                        <div className="mt-8 pt-6 border-t border-pits-border text-center">
+                            <p className="text-sm text-gray-400 mb-4">Don't have an account? Join the mechanical elite for just <strong className="text-white">$3.00 / month</strong>.</p>
+                            <a href="ventas.html" className="inline-flex w-full items-center justify-center py-3 bg-transparent border border-pits-primary text-pits-primary hover:bg-pits-primary hover:text-white font-bold rounded-xl transition duration-300 uppercase tracking-widest text-xs gap-2">
+                                <i className="ph-fill ph-star"></i> Subscribe Now
+                            </a>
                         </div>
-
-                        <button 
-                            onClick={handleLogin}
-                            disabled={!selectedRole}
-                            className="w-full py-4 bg-pits-primary hover:bg-red-700 text-white font-bold rounded-xl transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 uppercase tracking-wider"
-                        >
-                            Initialize System <i className="ph-bold ph-arrow-right"></i>
-                        </button>
                     </div>
                 </div>
             );
         };
 
         // ==========================================
-        // 2. MAIN CHAT INTERFACE
+        // 3. CHAT INTERFACE
         // ==========================================
         const ChatInterface = ({ role, onLogout }) => {
             const [messages, setMessages] = useState([
                 { 
                     role: 'ai', 
                     content: role === 'mechanic' 
-                        ? 'System Online. **Chief Engineer PITS** ready. Accessing ALLDATA, Mitchell 1, and European/JDM databases. Enter fault code (e.g., P0171), ask for torque specs, or vehicle wiring configurations.'
-                        : 'Hello! I am your AI Automotive Assistant. Did a light come on your dashboard? Need maintenance advice for your car, motorcycle, or ATV? Tell me the symptoms.'
+                        ? 'System Online. **Chief Engineer PITS** ready. Accessing ALLDATA, Mitchell 1, and European/JDM databases. Enter your fault code (e.g. P0300), request torque specs, or wiring diagrams.'
+                        : 'Hello! I am your Automotive AI Assistant. Did a warning light come on your dashboard? Need a maintenance tip for your car or motorcycle? Tell me the symptoms in plain English.'
                 }
             ]);
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
             const messagesEndRef = useRef(null);
 
-            // AUTO-SCROLL TO BOTTOM
-            useEffect(() => {
-                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-            }, [messages]);
+            useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
             const handleSend = async () => {
                 if (!input.trim()) return;
@@ -168,30 +274,22 @@
                 setIsLoading(true);
 
                 try {
-                    // API CONNECTION TO YOUR EXISTING HEROKU APP
-                    // Note: You don't need to change anything in Heroku.
                     const API_URL = "https://abunda-bca693eb3dbb.herokuapp.com/api/chat";
 
-                    // ==========================================
-                    // 🧠 QUANTUM AI PROMPT (ENGLISH US MARKET)
-                    // ==========================================
                     const mechanicPrompt = `
-                        You are INFINITI PITS, the ultimate AI Chief Mechanic and Master Automotive Technician for the US market.
-                        DATABASE ACCESS: You have simulated access to ALLDATA, Mitchell 1, European Manufacturer Manuals (BMW, Audi, Mercedes, Porsche), and complete service data for Motorcycles, UTVs, and ATVs (Honda, Polaris, Can-Am, Yamaha).
-                        YOUR USER: A Professional Mechanic working in a repair shop.
-                        YOUR MISSION: Provide highly technical diagnostics, precise torque specifications, electrical wiring diagram guidance, and advanced OBD2 troubleshooting.
-                        TONE: Professional, highly technical, concise, authoritative. Do not use generic advice. Give them the hard specs and exact procedures.
-                        LANGUAGE: English.
+                        YOU ARE: INFINITI PITS, the AI Chief Engineer and Master Mechanic for professional repair shops.
+                        SIMULATED DATABASE: ALLDATA, Mitchell 1, European Manuals (BMW, Audi, Mercedes), and Motorcycles/UTVs.
+                        USER: A Professional Mechanic in their shop.
+                        MISSION: Provide deep technical diagnostics, exact torque specifications, wiring guides, and advanced DTC (OBD2) resolution.
+                        TONE: Professional, highly technical, direct. Treat the user as a colleague. Use bold text and lists. Language: English.
                         
                         Mechanic's Query: ${userText}
                     `;
 
                     const ownerPrompt = `
-                        You are INFINITI PITS, an expert Automotive AI assistant helping a standard vehicle owner.
-                        YOUR MISSION: Explain mechanical issues, dashboard warning lights, and maintenance schedules clearly and simply without overly complex jargon. 
-                        VEHICLES: You cover Cars, Trucks, Motorcycles, and UTVs/ATVs.
-                        TONE: Helpful, reassuring, easy to understand. Always recommend professional help if the issue is dangerous (e.g., brakes, steering).
-                        LANGUAGE: English.
+                        YOU ARE: INFINITI PITS, the expert automotive AI assistant for a standard vehicle owner.
+                        MISSION: Explain mechanical breakdowns, dashboard warning lights, and maintenance clearly, without overly complex technical jargon.
+                        TONE: Friendly, patient, educational. If it is dangerous (brakes, steering), advise going to a repair shop and explain exactly what they should tell the mechanic. Language: English.
                         
                         Owner's Query: ${userText}
                     `;
@@ -201,94 +299,68 @@
                     const response = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            message: systemPrompt, 
-                            history: [] // Simplified history for stateless interaction
-                        })
+                        body: JSON.stringify({ message: systemPrompt, history: [] })
                     });
 
-                    if (!response.ok) throw new Error('API Network Error');
+                    if (!response.ok) throw new Error('Network Error');
                     
                     const data = await response.json();
-                    
-                    // Formatting text simple bold replacements
-                    let formattedResponse = data.response || data.text || "Diagnostic system error. Try again.";
+                    let formattedResponse = data.response || data.text || "Diagnostic error. Please try again.";
                     
                     setMessages(prev => [...prev, { role: 'ai', content: formattedResponse }]);
 
                 } catch (error) {
-                    console.error("Error:", error);
-                    setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Connection lost to the mainframe. Please check your internet connection or try again later." }]);
+                    setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Connection lost to the main matrix. Please check your internet." }]);
                 } finally {
                     setIsLoading(false);
                 }
             };
 
-            const handleKeyPress = (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                }
-            };
-
             return (
-                <div className="flex flex-col h-screen bg-pits-dark">
-                    {/* HEADER */}
-                    <header className="glass-panel border-b-0 border-pits-primary/20 p-4 flex items-center justify-between z-20 sticky top-0">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-pits-primary rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(220,38,38,0.4)]">
-                                <i className="ph-bold ph-engine text-xl text-white"></i>
-                            </div>
+                <div className="flex flex-col h-screen bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] bg-pits-dark">
+                    <header className="glass-panel border-b border-pits-border p-4 flex items-center justify-between z-20 sticky top-0">
+                        <div className="flex items-center gap-3">
+                            <img src="images3/A Mark Small.png" alt="Logo" className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
                             <div>
-                                <h1 className="font-display font-bold text-lg leading-tight uppercase tracking-wide">Infiniti Pits</h1>
+                                <h1 className="font-display font-bold text-lg leading-tight uppercase tracking-wide text-white">Infiniti Pits</h1>
                                 <div className="flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                                    <span className="text-[10px] text-gray-400 font-mono tracking-widest uppercase">System Online</span>
+                                    <span className="text-[10px] text-gray-400 font-mono tracking-widest uppercase">Online</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${role === 'mechanic' ? 'bg-red-500/10 text-red-400 border-red-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
+                            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border hidden sm:block ${role === 'mechanic' ? 'bg-red-500/10 text-red-400 border-red-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
                                 {role === 'mechanic' ? 'Pro Mode' : 'Owner Mode'}
                             </div>
-                            <button onClick={onLogout} className="text-gray-400 hover:text-white transition" title="Log Out">
+                            <button onClick={onLogout} className="w-10 h-10 rounded-xl bg-black/50 border border-pits-border text-gray-400 hover:text-white hover:border-red-500 transition flex items-center justify-center" title="Log Out">
                                 <i className="ph-bold ph-sign-out text-xl"></i>
                             </button>
                         </div>
                     </header>
 
-                    {/* CHAT AREA */}
-                    <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 relative">
-                        {/* Background Watermark */}
-                        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none">
-                            <i className="ph-fill ph-engine text-[400px]"></i>
-                        </div>
-
+                    <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                         {messages.map((msg, idx) => (
-                            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative z-10`}>
+                            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`flex gap-3 max-w-[90%] md:max-w-[75%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                                    
-                                    {/* Avatar */}
-                                    <div className="flex-shrink-0">
+                                    <div className="flex-shrink-0 mt-1">
                                         {msg.role === 'ai' ? (
-                                            <div className="w-8 h-8 rounded-lg bg-pits-panel border border-pits-border flex items-center justify-center text-pits-primary">
-                                                <i className="ph-bold ph-cpu"></i>
+                                            <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-border flex items-center justify-center text-pits-primary shadow-[0_0_10px_rgba(220,38,38,0.3)]">
+                                                <i className="ph-fill ph-engine"></i>
                                             </div>
                                         ) : (
-                                            <div className="w-8 h-8 rounded-lg bg-pits-primary flex items-center justify-center text-white">
-                                                <i className="ph-bold ph-user"></i>
+                                            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white">
+                                                <i className="ph-fill ph-user"></i>
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* Message Bubble */}
-                                    <div className={`p-4 rounded-2xl text-sm leading-relaxed ${
+                                    <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-lg ${
                                         msg.role === 'user' 
-                                        ? 'bg-pits-primary text-white rounded-tr-none shadow-lg' 
-                                        : 'bg-pits-panel border border-pits-border text-gray-200 rounded-tl-none shadow-md'
+                                        ? 'bg-pits-panel border border-slate-700 text-white rounded-tr-none' 
+                                        : 'bg-black/60 border border-pits-primary/30 text-gray-200 rounded-tl-none'
                                     }`}>
-                                        {/* Simple formatting for bold text from markdown */}
                                         {msg.content.split('\n').map((line, i) => (
                                             <p key={i} className="mb-2 last:mb-0" dangerouslySetInnerHTML={{__html: line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')}}></p>
                                         ))}
@@ -296,16 +368,13 @@
                                 </div>
                             </div>
                         ))}
-
                         {isLoading && (
-                            <div className="flex justify-start relative z-10">
+                            <div className="flex justify-start">
                                 <div className="flex gap-3 max-w-[75%]">
-                                    <div className="w-8 h-8 rounded-lg bg-pits-panel border border-pits-border flex items-center justify-center text-pits-primary">
-                                        <i className="ph-bold ph-cpu"></i>
-                                    </div>
-                                    <div className="p-4 rounded-2xl rounded-tl-none bg-pits-panel border border-pits-border flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-border flex items-center justify-center text-pits-primary shadow-[0_0_10px_rgba(220,38,38,0.3)] mt-1"><i className="ph-fill ph-engine"></i></div>
+                                    <div className="p-4 rounded-2xl rounded-tl-none bg-black/60 border border-pits-primary/30 flex items-center gap-3">
                                         <i className="ph-bold ph-circle-notch animate-spin text-pits-primary"></i>
-                                        <span className="text-xs text-gray-400 font-mono">Querying ALLDATA & Manuals...</span>
+                                        <span className="text-xs text-gray-400 font-mono">Querying manuals...</span>
                                     </div>
                                 </div>
                             </div>
@@ -313,59 +382,65 @@
                         <div ref={messagesEndRef} />
                     </main>
 
-                    {/* INPUT AREA */}
                     <footer className="p-4 bg-pits-panel border-t border-pits-border z-20">
-                        <div className="max-w-4xl mx-auto relative">
-                            <textarea
+                        <div className="max-w-4xl mx-auto relative flex gap-2">
+                            <input
+                                type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={handleKeyPress}
-                                placeholder={role === 'mechanic' ? "Enter DTC (e.g. P0300), vehicle VIN, or request wiring diagrams..." : "Describe your vehicle's problem or dashboard light..."}
-                                className="w-full bg-pits-dark border border-pits-border rounded-xl pl-4 pr-14 py-4 text-sm text-white focus:outline-none focus:border-pits-primary transition resize-none no-scrollbar h-14"
+                                onKeyPress={e => e.key === 'Enter' && handleSend()}
+                                placeholder={role === 'mechanic' ? "Ex: Nissan QR25DE cylinder head torque specs..." : "Ex: My Check Engine light came on..."}
+                                className="w-full bg-black/50 border border-pits-border rounded-xl px-5 py-4 text-sm text-white focus:outline-none focus:border-pits-primary transition"
                                 disabled={isLoading}
-                                rows="1"
                             />
                             <button
                                 onClick={handleSend}
                                 disabled={!input.trim() || isLoading}
-                                className="absolute right-2 top-2 bottom-2 w-10 bg-pits-primary text-white rounded-lg flex items-center justify-center hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-14 bg-pits-primary text-white rounded-xl flex items-center justify-center hover:bg-red-600 transition disabled:opacity-50 shadow-[0_0_15px_rgba(220,38,38,0.4)] shrink-0"
                             >
-                                <i className="ph-bold ph-paper-plane-right"></i>
+                                <i className="ph-bold ph-paper-plane-right text-xl"></i>
                             </button>
                         </div>
-                        <p className="text-center text-[10px] text-gray-500 mt-2 font-mono">
-                            AI Assistance Tool. Always verify critical torque specifications with official manufacturer data.
-                        </p>
                     </footer>
                 </div>
             );
         };
 
         // ==========================================
-        // APP INITIALIZATION
+        // MAIN APP
         // ==========================================
         const App = () => {
+            const [user, setUser] = useState(null);
             const [role, setRole] = useState(null);
 
-            // Load saved session on mount
             useEffect(() => {
                 const savedRole = localStorage.getItem('infiniti_pits_us_role');
                 if (savedRole) setRole(savedRole);
+                
+                if (isFirebaseActive && auth) {
+                    const unsubscribe = auth.onAuthStateChanged((u) => {
+                        if (u) setUser(u);
+                    });
+                    return () => unsubscribe();
+                }
             }, []);
 
             const handleLoginSuccess = (userData, selectedRole) => {
                 localStorage.setItem('infiniti_pits_us_role', selectedRole);
                 setRole(selectedRole);
+                setUser(userData);
             };
 
-            const handleLogout = () => {
+            const handleLogout = async () => {
+                if (isFirebaseActive && auth) await auth.signOut();
                 localStorage.removeItem('infiniti_pits_us_role');
                 setRole(null);
+                setUser(null);
             };
 
             return (
                 <React.Fragment>
-                    {!role ? (
+                    {!user ? (
                         <LoginScreen onLoginSuccess={handleLoginSuccess} />
                     ) : (
                         <ChatInterface role={role} onLogout={handleLogout} />
