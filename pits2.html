@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infiniti Pits AI | Diagnóstico Cuántico Visual</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Marked.js para interpretar imágenes y formatos -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        pits: {
+                            dark: '#050b14',
+                            panel: '#0d1522',
+                            gold: '#f59e0b',
+                            cyan: '#06b6d4',
+                            neon: '#00f0ff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #050b14; color: #e2e8f0; }
+        
+        /* Scrollbar cibernético */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0d1522; }
+        ::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+
+        .glass-panel {
+            background: rgba(13, 21, 34, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .neon-text { text-shadow: 0 0 10px rgba(0, 240, 255, 0.7); }
+        .gold-text { text-shadow: 0 0 10px rgba(245, 158, 11, 0.7); }
+
+        /* Animación de carga (Typing) */
+        .typing-dot { animation: typing 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Formato de Markdown en el chat (Para imágenes y listas) */
+        .msg-content ul { list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        .msg-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        .msg-content strong { color: #00f0ff; font-weight: 600; }
+        
+        /* Estilo para las imágenes de los manuales en el chat */
+        .msg-content img {
+            border-radius: 0.5rem;
+            max-width: 100%;
+            height: auto;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid rgba(6, 182, 212, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            cursor: zoom-in;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .msg-content img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.6);
+        }
+
+        /* Animación de entrada de mensajes */
+        .msg-enter { animation: fadeInUp 0.4s ease-out forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col font-sans relative">
+
+    <!-- HEADER -->
+    <header class="glass-panel w-full p-4 flex items-center justify-between z-10 shadow-lg shadow-cyan-900/20 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-pits-cyan flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.5)]">
+                <i class="ph-fill ph-engine text-pits-dark text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="font-display font-bold text-xl tracking-wider text-white neon-text">INFINITI <span class="text-pits-gold gold-text">PITS</span></h1>
+                <p class="text-xs text-cyan-400 font-mono flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Visual DB Online
+                </p>
+            </div>
+        </div>
+        <div class="flex gap-4">
+            <a href="index.html" class="text-gray-400 hover:text-white transition"><i class="ph ph-x text-2xl"></i></a>
+        </div>
+    </header>
+
+    <!-- SELECTOR DE ROL -->
+    <div class="w-full bg-pits-panel border-b border-cyan-900/30 p-3 flex justify-center z-10 shrink-0">
+        <div class="bg-black/50 p-1 rounded-lg flex gap-1 border border-cyan-900/50 w-full max-w-md">
+            <button id="btn-owner" onclick="setRole('owner')" class="flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-cyan-400 bg-cyan-900/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+                <i class="ph-fill ph-car-profile text-lg"></i> Dueño de Auto
+            </button>
+            <button id="btn-mechanic" onclick="setRole('mechanic')" class="flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-300">
+                <i class="ph-fill ph-wrench text-lg"></i> Taller / Mecánico
+            </button>
+        </div>
+    </div>
+
+    <!-- ÁREA DE CHAT -->
+    <main id="chat-box" class="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-6 scroll-smooth bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] relative">
+        
+        <!-- Mensaje de Bienvenida -->
+        <div class="flex gap-4 max-w-3xl msg-enter">
+            <div class="w-10 h-10 rounded-full bg-pits-cyan flex-shrink-0 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.4)]">
+                <i class="ph-fill ph-robot text-pits-dark text-xl"></i>
+            </div>
+            <div class="glass-panel p-4 rounded-2xl rounded-tl-none text-sm md:text-base leading-relaxed text-gray-200 border-l-2 border-l-pits-cyan shadow-lg">
+                <p id="welcome-msg">¡Hola! Soy la IA de Infiniti Pits. ¿En qué te puedo ayudar hoy con tu vehículo?</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ZONA DE INPUT -->
+    <footer class="glass-panel p-4 pb-6 md:pb-4 border-t border-cyan-900/50 shrink-0">
+        <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-black/60 border border-cyan-800/50 rounded-2xl p-2 focus-within:border-pits-cyan transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+            <textarea id="user-input" rows="1" class="w-full bg-transparent text-white outline-none resize-none p-3 max-h-32 text-sm md:text-base font-sans" placeholder="Pide un torque, código OBD2 o diagrama..." onkeydown="handleEnter(event)"></textarea>
+            <button id="send-btn" onclick="sendMessage()" class="w-12 h-12 rounded-xl bg-pits-cyan hover:bg-pits-neon flex items-center justify-center text-pits-dark transition-all shadow-[0_0_10px_rgba(6,182,212,0.4)] hover:scale-105 flex-shrink-0 mb-1 mr-1">
+                <i class="ph-bold ph-paper-plane-right text-xl"></i>
+            </button>
+        </div>
+        <p class="text-center text-xs text-gray-500 mt-3 font-mono">Infiniti Pits by W Studio &copy; 2026. Data de ALLDATA & Mitchell Integrada.</p>
+    </footer>
+
+    <!-- MODAL DE VISOR DE IMÁGENES (LIGHTBOX) -->
+    <div id="image-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-opacity duration-300 opacity-0" onclick="closeImageModal()">
+        <button class="absolute top-6 right-6 text-white bg-black/50 p-2 rounded-full hover:bg-pits-cyan hover:text-black transition z-50">
+            <i class="ph-bold ph-x text-2xl"></i>
+        </button>
+        <img id="modal-img" src="" alt="Diagrama Completo" class="max-w-full max-h-[90vh] object-contain rounded-lg border border-pits-cyan/30 shadow-[0_0_50px_rgba(6,182,212,0.2)] transform scale-95 transition-transform duration-300" onclick="event.stopPropagation();" />
+    </div>
+
+    <!-- LÓGICA DEL SISTEMA -->
+    <script>
+        // ⚠️ SOBERANO: COLOCA AQUÍ LA URL DE TU SERVIDOR HEROKU
+        const API_URL = "https://abunda-bca693eb3dbb.herokuapp.com/api/chat"; 
+
+        let currentUserType = "owner"; 
+        let chatHistory = [];
+
+        const chatBox = document.getElementById("chat-box");
+        const userInput = document.getElementById("user-input");
+        const btnOwner = document.getElementById("btn-owner");
+        const btnMechanic = document.getElementById("btn-mechanic");
+        const welcomeMsg = document.getElementById("welcome-msg");
+        
+        // Modal elements
+        const imageModal = document.getElementById("image-modal");
+        const modalImg = document.getElementById("modal-img");
+
+        // Configurar marked.js para seguridad
+        marked.setOptions({ breaks: true });
+
+        // Event listener para capturar clics en las imágenes del chat
+        chatBox.addEventListener('click', function(e) {
+            if (e.target.tagName === 'IMG') {
+                openImageModal(e.target.src);
+            }
+        });
+
+        function openImageModal(src) {
+            modalImg.src = src;
+            imageModal.classList.remove('hidden');
+            // Timeout para permitir que la clase se quite antes de cambiar la opacidad
+            setTimeout(() => {
+                imageModal.classList.remove('opacity-0');
+                modalImg.classList.remove('scale-95');
+                modalImg.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeImageModal() {
+            imageModal.classList.add('opacity-0');
+            modalImg.classList.remove('scale-100');
+            modalImg.classList.add('scale-95');
+            setTimeout(() => {
+                imageModal.classList.add('hidden');
+                modalImg.src = "";
+            }, 300);
+        }
+
+        // AUTO-RESIZE DEL TEXTAREA
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // ENVIAR CON ENTER
+        function handleEnter(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // CAMBIO DE ROL
+        function setRole(role) {
+            currentUserType = role;
+            
+            if(role === 'owner') {
+                btnOwner.className = "flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-cyan-400 bg-cyan-900/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]";
+                btnMechanic.className = "flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-300 bg-transparent shadow-none";
+                welcomeMsg.innerText = "¡Hola! Soy la IA de Infiniti Pits. Como dueño del vehículo, estoy aquí para explicarte de forma sencilla el mantenimiento, averías o qué decirle a tu taller.";
+            } else {
+                btnMechanic.className = "flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-pits-gold bg-amber-900/40 shadow-[0_0_10px_rgba(245,158,11,0.3)]";
+                btnOwner.className = "flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-300 bg-transparent shadow-none";
+                welcomeMsg.innerHTML = "Sistemas en línea, Colega. Acceso total a base de datos de <strong>ALLDATA, Mitchell1, Europeos, Motos y UTVs</strong>. Solicita torques, DTCs o <strong>diagramas de despiece</strong> y te los mostraré en pantalla.";
+            }
+
+            chatHistory = [];
+        }
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            appendMessage("user", text);
+            userInput.value = "";
+            userInput.style.height = 'auto'; 
+
+            const typingId = showTypingIndicator();
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: text,
+                        user_type: currentUserType,
+                        history: chatHistory
+                    })
+                });
+
+                removeTypingIndicator(typingId);
+
+                if (!response.ok) throw new Error("Error en la matriz del servidor.");
+
+                const data = await response.json();
+                const aiReply = data.response;
+
+                appendMessage("ai", aiReply);
+
+                chatHistory.push({ role: "user", content: text });
+                chatHistory.push({ role: "ai", content: aiReply });
+
+                if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
+
+            } catch (error) {
+                console.error(error);
+                removeTypingIndicator(typingId);
+                appendMessage("ai", "⚠️ *Error de conexión cuántica:* No me pude comunicar con la Base de Datos. Verifica la conexión a Heroku.");
+            }
+        }
+
+        function appendMessage(sender, text) {
+            const msgDiv = document.createElement("div");
+            msgDiv.className = `flex gap-4 max-w-4xl msg-enter ${sender === 'user' ? 'self-end flex-row-reverse' : ''}`;
+
+            // 🌟 LA MAGIA: Convertimos el texto Markdown a HTML real para mostrar las imágenes
+            const htmlContent = marked.parse(text);
+
+            const avatar = sender === 'user' 
+                ? `<div class="w-10 h-10 rounded-full bg-gray-700 flex-shrink-0 flex items-center justify-center shadow-lg"><i class="ph-fill ph-user text-white text-xl"></i></div>`
+                : `<div class="w-10 h-10 rounded-full ${currentUserType === 'owner' ? 'bg-pits-cyan' : 'bg-pits-gold'} flex-shrink-0 flex items-center justify-center shadow-[0_0_10px_${currentUserType === 'owner' ? 'rgba(6,182,212,0.4)' : 'rgba(245,158,11,0.4)'}]"><i class="ph-fill ph-robot text-pits-dark text-xl"></i></div>`;
+
+            const bubbleClass = sender === 'user'
+                ? `bg-cyan-900/60 p-4 rounded-2xl rounded-tr-none text-sm md:text-base text-white border border-cyan-700/50 shadow-lg`
+                : `glass-panel p-5 rounded-2xl rounded-tl-none text-sm md:text-base leading-relaxed text-gray-200 border-l-2 ${currentUserType === 'owner' ? 'border-l-pits-cyan' : 'border-l-pits-gold'} msg-content shadow-lg w-full overflow-hidden`;
+
+            msgDiv.innerHTML = `
+                ${avatar}
+                <div class="${bubbleClass}">
+                    ${htmlContent}
+                </div>
+            `;
+
+            chatBox.appendChild(msgDiv);
+            
+            // Esperar un poco a que las imágenes carguen para hacer scroll correctamente
+            setTimeout(scrollToBottom, 100);
+        }
+
+        function showTypingIndicator() {
+            const id = "typing-" + Date.now();
+            const typingDiv = document.createElement("div");
+            typingDiv.id = id;
+            typingDiv.className = `flex gap-4 max-w-3xl msg-enter`;
+            
+            typingDiv.innerHTML = `
+                <div class="w-10 h-10 rounded-full ${currentUserType === 'owner' ? 'bg-pits-cyan' : 'bg-pits-gold'} flex-shrink-0 flex items-center justify-center shadow-lg opacity-50">
+                    <i class="ph-fill ph-robot text-pits-dark text-xl"></i>
+                </div>
+                <div class="glass-panel px-4 py-3 rounded-2xl rounded-tl-none flex items-center gap-1 w-16">
+                    <div class="w-2 h-2 rounded-full bg-pits-cyan typing-dot"></div>
+                    <div class="w-2 h-2 rounded-full bg-pits-cyan typing-dot"></div>
+                    <div class="w-2 h-2 rounded-full bg-pits-cyan typing-dot"></div>
+                </div>
+            `;
+            chatBox.appendChild(typingDiv);
+            scrollToBottom();
+            return id;
+        }
+
+        function removeTypingIndicator(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function scrollToBottom() {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
