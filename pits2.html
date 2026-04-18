@@ -2,7 +2,7 @@
 <html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>INFINITI PITS | Dual Render Terminal</title>
     
     <!-- Librerías de Diseño e Iconos -->
@@ -54,8 +54,9 @@
     </script>
 
     <style>
-        body { background-color: #030508; color: #f8fafc; overflow: hidden; }
-        ::-webkit-scrollbar { width: 6px; }
+        /* Ahora permitimos el scroll nativo para asegurar la compatibilidad móvil total */
+        body { background-color: #030508; color: #f8fafc; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 3px; }
         
@@ -101,7 +102,7 @@
 </head>
 <body class="antialiased selection:bg-pits-cyan selection:text-pits-dark">
 
-    <div id="root" class="h-screen flex flex-col relative z-10"></div>
+    <div id="root" class="min-h-screen flex flex-col relative z-10"></div>
     <div class="fixed inset-0 pointer-events-none z-0" style="background-image: radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 1px, transparent 1px); background-size: 30px 30px;"></div>
 
     <script type="text/babel">
@@ -116,7 +117,7 @@
         
         // 1. Planos Físicos (Base64)
         const DB_BASE64 = {
-            "tiempo": "TU_CODIGO_BASE64_PARA_TIEMPO_AQUI", // Soberano: Reemplaza con tus códigos
+            "tiempo": "TU_CODIGO_BASE64_PARA_TIEMPO_AQUI", // Soberano: Reemplaza con tus códigos gigantes
             "electrico": "TU_CODIGO_BASE64_PARA_ELECTRICO_AQUI",
             "default": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
         };
@@ -198,9 +199,7 @@
             useEffect(() => {
                 if (containerRef.current && code) {
                     try {
-                        // Limpiamos el contenedor
                         containerRef.current.innerHTML = `<div class="mermaid">${code}</div>`;
-                        // Forzamos a Mermaid a procesar el código
                         mermaid.init(undefined, containerRef.current.querySelectorAll('.mermaid'));
                     } catch (e) {
                         console.error("Error renderizando Mermaid:", e);
@@ -211,8 +210,67 @@
             return (
                 <div 
                     ref={containerRef} 
-                    className="w-full h-full flex items-center justify-center overflow-auto p-4 cursor-grab active:cursor-grabbing hover:scale-[1.02] transition-transform duration-300"
+                    className="w-full h-full flex items-center justify-center overflow-auto p-4 transition-transform duration-300"
                 ></div>
+            );
+        };
+
+        // ==========================================
+        // 🚀 COMPONENTE: LIGHTBOX CON ZOOM INTERACTIVO
+        // ==========================================
+        const ZoomLightbox = ({ src, onClose }) => {
+            const [scale, setScale] = useState(1);
+
+            const zoomIn = (e) => { e.stopPropagation(); setScale(s => Math.min(s + 0.5, 4)); }; // Máximo 400%
+            const zoomOut = (e) => { e.stopPropagation(); setScale(s => Math.max(s - 0.5, 1)); }; // Mínimo 100%
+            const resetZoom = (e) => { e.stopPropagation(); setScale(1); };
+
+            return (
+                <div className="fixed inset-0 z-[100] bg-pits-dark/95 backdrop-blur-xl flex flex-col animate-[fadeIn_0.3s_ease-out]">
+                    {/* Barra de Herramientas de Zoom */}
+                    <div className="flex items-center justify-between p-3 md:p-4 bg-black/80 border-b border-pits-cyan/30 shrink-0 shadow-lg">
+                        <div className="flex items-center gap-2 text-pits-cyan font-mono text-[10px] md:text-xs uppercase tracking-widest font-bold">
+                            <i className="ph-bold ph-magnifying-glass text-lg"></i>
+                            <span className="hidden sm:inline">Inspección Detallada</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-1 md:gap-2">
+                            <button onClick={zoomOut} className="w-10 h-10 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition" title="Alejar (Zoom Out)">
+                                <i className="ph-bold ph-minus text-lg"></i>
+                            </button>
+                            <span className="text-white font-mono text-[10px] md:text-xs w-12 text-center">{Math.round(scale * 100)}%</span>
+                            <button onClick={zoomIn} className="w-10 h-10 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition" title="Acercar (Zoom In)">
+                                <i className="ph-bold ph-plus text-lg"></i>
+                            </button>
+                            <button onClick={resetZoom} className="w-10 h-10 rounded bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition ml-1 md:ml-4" title="Tamaño Original">
+                                <i className="ph-bold ph-arrows-in text-lg"></i>
+                            </button>
+                            
+                            <div className="w-px h-6 bg-slate-700 mx-1 md:mx-2"></div>
+                            
+                            <button onClick={onClose} className="w-10 h-10 rounded bg-red-500/20 text-red-500 border border-red-500/50 hover:bg-red-500 hover:text-white flex items-center justify-center transition" title="Cerrar Visualizador">
+                                <i className="ph-bold ph-x text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* Área de Visualización (Con Scroll Nativo para móviles y PC) */}
+                    <div className="flex-1 overflow-auto p-4 md:p-8 flex justify-center items-start" onClick={onClose}>
+                        <div className="min-w-full flex justify-center" onClick={e => e.stopPropagation()}>
+                            <img 
+                                src={src} 
+                                alt="Plano Técnico Ampliado" 
+                                style={{ 
+                                    width: scale === 1 ? 'auto' : `${100 * scale}%`, 
+                                    maxWidth: scale === 1 ? '100%' : 'none',
+                                    height: 'auto',
+                                    transition: 'width 0.2s ease-out'
+                                }}
+                                className={`object-contain bg-white rounded shadow-[0_0_50px_rgba(6,182,212,0.15)] ${scale === 1 ? 'max-h-[80vh]' : ''}`} 
+                            />
+                        </div>
+                    </div>
+                </div>
             );
         };
 
@@ -262,7 +320,6 @@
                 }
 
                 try {
-                    // Petición a Heroku
                     const response = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -277,11 +334,7 @@
                     const data = await response.json();
                     let aiText = data.response || "Error de decodificación.";
 
-                    // Extracción Dinámica desde la respuesta de la IA
-                    
-                    // 1. Busca código Mermaid en la respuesta
                     const mermaidMatch = aiText.match(/```mermaid\n([\s\S]*?)```/i);
-                    // 2. Busca etiqueta de imagen Base64
                     const base64Match = aiText.match(/\[DIAGRAMA:\s*(.*?)\]/i);
 
                     if (mermaidMatch && mermaidMatch[1]) {
@@ -294,7 +347,6 @@
                         aiText = aiText.replace(/\[DIAGRAMA:.*?\]/i, '').trim();
                     }
 
-                    // Limpieza final de basura Markdown
                     aiText = aiText.replace(/!\[.*?\]\(.*?\)/g, ''); 
 
                     setMessages(prev => [...prev, { role: 'ai', content: aiText.trim() }]);
@@ -311,70 +363,65 @@
             };
 
             return (
-                <div className="flex flex-col h-screen relative overflow-hidden z-10">
+                <div className="flex flex-col h-screen lg:h-screen relative overflow-hidden z-10 bg-pits-dark">
                     
-                    {/* LIGHTBOX PARA IMÁGENES (No aplica a Mermaid) */}
+                    {/* LIGHTBOX CON ZOOM */}
                     {lightboxImg && viewType === 'base64' && (
-                        <div className="fixed inset-0 z-[100] bg-pits-dark/95 backdrop-blur-xl flex items-center justify-center p-4 cursor-zoom-out animate-[fadeIn_0.3s_ease-out]" onClick={() => setLightboxImg(null)}>
-                            <button className="absolute top-6 right-6 text-slate-400 hover:text-white bg-pits-panel border border-slate-700 p-3 rounded-full transition z-50">
-                                <i className="ph-bold ph-x text-xl"></i>
-                            </button>
-                            <img src={lightboxImg} alt="Plano Ampliado" className="max-w-full max-h-[90vh] object-contain rounded border-4 border-white shadow-[0_0_50px_rgba(6,182,212,0.15)] bg-white p-2" onClick={(e) => e.stopPropagation()} />
-                        </div>
+                        <ZoomLightbox src={lightboxImg} onClose={() => setLightboxImg(null)} />
                     )}
 
                     {/* HEADER TÁCTICO */}
-                    <header className="glass-panel border-b-0 p-3 flex items-center justify-between shrink-0">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-pits-cyan/10 border border-pits-cyan/50 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-                                <i className="ph-fill ph-cpu text-pits-cyan text-xl"></i>
+                    <header className="glass-panel border-b-0 p-3 md:p-4 flex items-center justify-between shrink-0 z-20">
+                        <div className="flex items-center gap-3 md:gap-4">
+                            <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-pits-cyan/10 border border-pits-cyan/50 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                                <i className="ph-fill ph-cpu text-pits-cyan text-lg md:text-xl"></i>
                             </div>
                             <div>
-                                <h1 className="font-display font-bold text-lg leading-none uppercase tracking-widest text-white mb-1">Infiniti Pits</h1>
+                                <h1 className="font-display font-bold text-base md:text-lg leading-none uppercase tracking-widest text-white mb-1">Infiniti Pits</h1>
                                 <div className="flex items-center gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-pits-cyan animate-pulse"></span>
-                                    <span className="text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Dual Render Engine</span>
+                                    <span className="text-[9px] md:text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Dual Render Engine</span>
                                 </div>
                             </div>
                         </div>
-                        <button onClick={onLogout} className="px-4 py-2 rounded-lg bg-pits-panel border border-pits-border text-gray-400 hover:text-white hover:border-pits-primary transition font-mono text-xs uppercase tracking-widest flex items-center gap-2">
+                        <button onClick={onLogout} className="px-3 py-2 md:px-4 md:py-2 rounded-lg bg-pits-panel border border-pits-border text-gray-400 hover:text-white hover:border-pits-primary transition font-mono text-[10px] md:text-xs uppercase tracking-widest flex items-center gap-2">
                             <span className="hidden sm:inline">Desconectar</span>
                             <i className="ph-bold ph-sign-out text-lg"></i>
                         </button>
                     </header>
 
-                    {/* LAYOUT PRINCIPAL */}
-                    <div className="flex-1 flex flex-col lg:flex-row w-full overflow-hidden p-3 gap-4">
+                    {/* LAYOUT PRINCIPAL (RESPONSIVE) */}
+                    <div className="flex-1 flex flex-col lg:flex-row w-full p-2 md:p-4 gap-3 md:gap-4 overflow-y-auto lg:overflow-hidden">
                         
-                        {/* 1. CHAT (IZQUIERDA) */}
-                        <div className="w-full lg:w-[40%] flex flex-col glass-panel rounded-2xl border border-pits-border shadow-2xl overflow-hidden shrink-0 h-[50vh] lg:h-full">
+                        {/* 1. CHAT (Arriba en celular, Izquierda en PC) */}
+                        <div className="w-full lg:w-[40%] flex flex-col glass-panel rounded-2xl border border-pits-border shadow-2xl shrink-0 h-[60vh] lg:h-full lg:overflow-hidden">
                             <div className="bg-pits-panel/80 p-3 border-b border-pits-border flex items-center gap-2 shrink-0">
                                 <i className="ph-fill ph-terminal-window text-pits-cyan"></i>
-                                <span className="font-mono text-[10px] text-gray-400 tracking-widest uppercase">Chat Técnico</span>
+                                <span className="font-mono text-[9px] md:text-[10px] text-gray-400 tracking-widest uppercase">Chat Técnico</span>
                             </div>
                             
-                            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                            <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-4 md:space-y-6">
                                 {messages.map((msg, idx) => (
                                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                        <div className={`flex gap-3 max-w-[95%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                        <div className={`flex gap-2 md:gap-3 max-w-[95%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                                             <div className="flex-shrink-0 mt-1">
                                                 {msg.role === 'ai' ? (
-                                                    <div className="w-8 h-8 rounded-xl bg-pits-cyan/10 border border-pits-cyan/30 flex items-center justify-center text-pits-cyan shadow-[0_0_10px_rgba(6,182,212,0.2)]"><i className="ph-fill ph-robot"></i></div>
+                                                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-xl bg-pits-cyan/10 border border-pits-cyan/30 flex items-center justify-center text-pits-cyan shadow-[0_0_10px_rgba(6,182,212,0.2)]"><i className="ph-fill ph-robot text-xs md:text-base"></i></div>
                                                 ) : (
-                                                    <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-600 flex items-center justify-center text-white"><i className="ph-fill ph-wrench"></i></div>
+                                                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-xl bg-slate-800 border border-slate-600 flex items-center justify-center text-white"><i className="ph-fill ph-wrench text-xs md:text-base"></i></div>
                                                 )}
                                             </div>
-                                            <div className={`p-4 md:p-5 rounded-2xl text-sm leading-relaxed shadow-lg markdown-body ${msg.role === 'user' ? 'bg-pits-panel border border-slate-700 text-white rounded-tr-none' : 'bg-black/60 border border-pits-cyan/20 text-slate-200 rounded-tl-none'}`} dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}></div>
+                                            <div className={`p-3 md:p-5 rounded-2xl text-xs md:text-sm leading-relaxed shadow-lg markdown-body ${msg.role === 'user' ? 'bg-pits-panel border border-slate-700 text-white rounded-tr-none' : 'bg-black/60 border border-pits-cyan/20 text-slate-200 rounded-tl-none'}`} dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}></div>
                                         </div>
                                     </div>
                                 ))}
                                 {isLoading && (
                                     <div className="flex justify-start">
-                                        <div className="flex gap-3 max-w-[75%]">
-                                            <div className="w-8 h-8 rounded-xl bg-pits-cyan/10 border border-pits-cyan/30 flex items-center justify-center text-pits-cyan mt-1"><i className="ph-fill ph-robot"></i></div>
-                                            <div className="p-4 rounded-2xl rounded-tl-none bg-black/60 border border-pits-cyan/20 flex items-center gap-3">
-                                                <i className="ph-bold ph-circle-notch animate-spin text-pits-cyan text-lg"></i>
-                                                <span className="text-xs text-gray-400 font-mono tracking-widest uppercase">Analizando Data...</span>
+                                        <div className="flex gap-2 md:gap-3 max-w-[75%]">
+                                            <div className="w-6 h-6 md:w-8 md:h-8 rounded-xl bg-pits-cyan/10 border border-pits-cyan/30 flex items-center justify-center text-pits-cyan mt-1"><i className="ph-fill ph-robot text-xs md:text-base"></i></div>
+                                            <div className="p-3 md:p-4 rounded-2xl rounded-tl-none bg-black/60 border border-pits-cyan/20 flex items-center gap-2 md:gap-3">
+                                                <i className="ph-bold ph-circle-notch animate-spin text-pits-cyan text-base md:text-lg"></i>
+                                                <span className="text-[10px] md:text-xs text-gray-400 font-mono tracking-widest uppercase">Analizando...</span>
                                             </div>
                                         </div>
                                     </div>
@@ -382,68 +429,68 @@
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            <div className="p-3 md:p-4 bg-pits-panel border-t border-pits-border shrink-0">
+                            <div className="p-2 md:p-4 bg-pits-panel border-t border-pits-border shrink-0">
                                 <div className="relative flex gap-2">
-                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Ej: Diagrama de flujo de falla, o plano eléctrico..." className="w-full bg-pits-dark border border-pits-border rounded-xl px-4 py-4 text-sm text-white focus:outline-none focus:border-pits-cyan transition font-mono" disabled={isLoading} autoComplete="off" />
-                                    <button onClick={handleSend} disabled={!input.trim() || isLoading} className="w-14 bg-pits-cyan text-pits-dark rounded-xl flex items-center justify-center hover:bg-cyan-400 transition disabled:opacity-50 shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.4)]"><i className="ph-bold ph-paper-plane-right text-xl"></i></button>
+                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Ingresa tu comando..." className="w-full bg-pits-dark border border-pits-border rounded-xl px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm text-white focus:outline-none focus:border-pits-cyan transition font-mono" disabled={isLoading} autoComplete="off" />
+                                    <button onClick={handleSend} disabled={!input.trim() || isLoading} className="w-12 md:w-14 bg-pits-cyan text-pits-dark rounded-xl flex items-center justify-center hover:bg-cyan-400 transition disabled:opacity-50 shrink-0 shadow-[0_0_15px_rgba(6,182,212,0.4)]"><i className="ph-bold ph-paper-plane-right text-lg md:text-xl"></i></button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 2. DUAL MONITOR (DERECHA) */}
-                        <div className="w-full lg:w-[60%] flex flex-col h-[50vh] lg:h-full shrink-0">
+                        {/* 2. DUAL MONITOR (Abajo en celular, Derecha en PC) */}
+                        <div className="w-full lg:w-[60%] flex flex-col shrink-0 h-[50vh] min-h-[350px] lg:h-full lg:overflow-hidden mb-4 lg:mb-0">
                             <div className={`flex-1 glass-panel rounded-2xl flex flex-col overflow-hidden relative shadow-[0_0_30px_rgba(6,182,212,0.05)] transition-colors duration-500 ${viewType === 'mermaid' ? 'border-pits-gold/40' : 'border-pits-cyan/40'}`}>
                                 
-                                {/* Header del Monitor dinámico */}
-                                <div className="bg-pits-panel p-3 border-b border-pits-border flex justify-between items-center z-10 shrink-0">
-                                    <div className="flex items-center gap-3">
-                                        <i className={`ph-fill text-lg ${viewType === 'mermaid' ? 'ph-tree-structure text-pits-gold' : 'ph-file-text text-pits-cyan'}`}></i>
-                                        <span className={`font-mono text-[10px] tracking-widest uppercase font-bold ${viewType === 'mermaid' ? 'text-pits-gold' : 'text-pits-cyan'}`}>
-                                            {viewType === 'mermaid' ? 'Monitor Flujo Lógico (Mermaid)' : 'Monitor Físico (Base64)'}
+                                {/* Header del Monitor */}
+                                <div className="bg-pits-panel p-2 md:p-3 border-b border-pits-border flex justify-between items-center z-10 shrink-0">
+                                    <div className="flex items-center gap-2 md:gap-3">
+                                        <i className={`ph-fill text-base md:text-lg ${viewType === 'mermaid' ? 'ph-tree-structure text-pits-gold' : 'ph-file-text text-pits-cyan'}`}></i>
+                                        <span className={`font-mono text-[9px] md:text-[10px] tracking-widest uppercase font-bold ${viewType === 'mermaid' ? 'text-pits-gold' : 'text-pits-cyan'}`}>
+                                            {viewType === 'mermaid' ? 'Flujo Lógico' : 'Monitor Físico'}
                                         </span>
                                     </div>
-                                    <button onClick={() => { if(viewType === 'base64' && viewData) setLightboxImg(viewData); }} className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white font-mono px-3 py-1.5 rounded transition flex items-center gap-2 uppercase tracking-widest disabled:opacity-50" disabled={viewType !== 'base64'}>
-                                        <i className="ph-bold ph-arrows-out-simple"></i> Ampliar
+                                    <button onClick={() => { if(viewType === 'base64' && viewData) setLightboxImg(viewData); }} className="text-[9px] md:text-[10px] bg-slate-800 hover:bg-slate-700 text-white font-mono px-2 py-1 md:px-3 md:py-1.5 rounded transition flex items-center gap-1 md:gap-2 uppercase tracking-widest disabled:opacity-50" disabled={viewType !== 'base64'}>
+                                        <i className="ph-bold ph-magnifying-glass-plus text-sm md:text-base"></i> <span className="hidden sm:inline">Ampliar / Zoom</span>
                                     </button>
                                 </div>
                                 
                                 {/* CONTENEDOR VISUAL */}
-                                <div className={`flex-1 relative flex items-center justify-center overflow-hidden p-4 ${viewType === 'base64' ? 'diagram-bg' : 'mermaid-bg'}`}>
+                                <div className={`flex-1 relative flex items-center justify-center overflow-hidden p-2 md:p-4 ${viewType === 'base64' ? 'diagram-bg' : 'mermaid-bg'}`}>
                                     
                                     {viewType === 'idle' && (
                                         <div className="text-center text-slate-500 font-mono flex flex-col items-center">
-                                            <div className="w-20 h-20 border-2 border-dashed border-slate-600 rounded-full flex items-center justify-center mb-4">
-                                                <i className="ph-thin ph-monitor text-4xl"></i>
+                                            <div className="w-16 h-16 md:w-20 md:h-20 border-2 border-dashed border-slate-600 rounded-full flex items-center justify-center mb-3 md:mb-4">
+                                                <i className="ph-thin ph-monitor text-3xl md:text-4xl"></i>
                                             </div>
-                                            <span className="text-xs uppercase tracking-widest">Esperando Comando Visual</span>
+                                            <span className="text-[10px] md:text-xs uppercase tracking-widest">Esperando Comando Visual</span>
                                         </div>
                                     )}
                                     
                                     {viewType === 'loading' && (
                                         <>
                                             <div className="absolute inset-0 hud-scanline"></div>
-                                            <div className="text-pits-cyan font-mono text-xs flex flex-col items-center z-10">
-                                                <i className="ph-bold ph-scan animate-spin text-4xl mb-4"></i>
-                                                <span className="animate-pulse tracking-[0.2em] bg-pits-dark/80 px-4 py-2 rounded">Generando Interfaz Visual...</span>
+                                            <div className="text-pits-cyan font-mono text-[10px] md:text-xs flex flex-col items-center z-10">
+                                                <i className="ph-bold ph-scan animate-spin text-3xl md:text-4xl mb-3 md:mb-4"></i>
+                                                <span className="animate-pulse tracking-[0.2em] bg-pits-dark/80 px-3 py-1.5 md:px-4 md:py-2 rounded">Generando Interfaz...</span>
                                             </div>
                                         </>
                                     )}
                                     
                                     {/* MODO BASE 64 (Imagen) */}
                                     {viewType === 'base64' && viewData && (
-                                        <div className="w-full h-full bg-white rounded-lg shadow-2xl border-2 border-slate-300 p-2 overflow-hidden flex items-center justify-center relative group cursor-zoom-in animate-[fadeIn_0.5s_ease-out]" onClick={() => setLightboxImg(viewData)}>
+                                        <div className="w-full h-full bg-white rounded-lg shadow-2xl border-2 border-slate-300 p-1 md:p-2 overflow-hidden flex items-center justify-center relative group cursor-zoom-in animate-[fadeIn_0.5s_ease-out]" onClick={() => setLightboxImg(viewData)}>
                                             <img src={viewData} alt="Diagrama Técnico" className="max-w-full max-h-full object-contain hover:scale-[1.02] transition-transform duration-300 mix-blend-multiply" />
-                                            <div className="absolute bottom-4 right-4 bg-pits-dark/90 text-white text-[10px] font-mono px-3 py-1.5 rounded border border-pits-cyan/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                Click para ampliar
+                                            <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-pits-dark/90 text-white text-[9px] md:text-[10px] font-mono px-2 py-1 md:px-3 md:py-1.5 rounded border border-pits-cyan/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                                <i className="ph-bold ph-magnifying-glass-plus"></i> Ampliar
                                             </div>
                                         </div>
                                     )}
 
-                                    {/* MODO MERMAID (Diagrama Logico interactivo) */}
+                                    {/* MODO MERMAID (Diagrama Lógico interactivo) */}
                                     {viewType === 'mermaid' && viewData && (
                                         <div className="w-full h-full rounded-lg bg-black/60 shadow-2xl border border-pits-gold/20 overflow-hidden relative animate-[fadeIn_0.5s_ease-out]">
                                             <MermaidViewer code={viewData} />
-                                            <div className="absolute top-4 right-4 bg-pits-gold/10 text-pits-gold text-[10px] font-mono px-3 py-1.5 rounded border border-pits-gold/30">
+                                            <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-pits-gold/10 text-pits-gold text-[9px] md:text-[10px] font-mono px-2 py-1 md:px-3 md:py-1.5 rounded border border-pits-gold/30">
                                                 Live Render
                                             </div>
                                         </div>
