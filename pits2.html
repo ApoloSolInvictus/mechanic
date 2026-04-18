@@ -1,18 +1,30 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infiniti Pits AI | Diagnóstico Cuántico Visual</title>
     
-    <!-- Tailwind CSS -->
+    <title>INFINITI PITS | IA Automotriz con Soporte Visual</title>
+    <meta name="description" content="El primer Ingeniero Jefe con Inteligencia Artificial. Diagnósticos OBD2, torques y diagramas al instante.">
+    
+    <!-- Librerías de Diseño e Iconos -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Marked.js para interpretar imágenes y formatos -->
+    
+    <!-- Motor de Markdown para procesar las imágenes de la IA -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- React Core -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -20,324 +32,420 @@
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
-                        display: ['Orbitron', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
                     },
                     colors: {
                         pits: {
-                            dark: '#050b14',
-                            panel: '#0d1522',
-                            gold: '#f59e0b',
-                            cyan: '#06b6d4',
-                            neon: '#00f0ff'
+                            dark: '#0a0a0a',     
+                            panel: '#171717',    
+                            primary: '#dc2626',  
+                            accent: '#fca5a5',   
+                            border: '#262626'
                         }
                     }
                 }
             }
         }
+        // Configurar Marked.js para interpretar saltos de línea correctamente
+        marked.setOptions({ breaks: true });
     </script>
 
     <style>
-        body { background-color: #050b14; color: #e2e8f0; }
-        
-        /* Scrollbar cibernético */
+        body { background-color: #0a0a0a; color: #f5f5f5; overflow-x: hidden; }
         ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0d1522; }
-        ::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
-
-        .glass-panel {
-            background: rgba(13, 21, 34, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(6, 182, 212, 0.2);
-        }
-
-        .neon-text { text-shadow: 0 0 10px rgba(0, 240, 255, 0.7); }
-        .gold-text { text-shadow: 0 0 10px rgba(245, 158, 11, 0.7); }
-
-        /* Animación de carga (Typing) */
-        .typing-dot { animation: typing 1.4s infinite ease-in-out both; }
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-
-        /* Formato de Markdown en el chat (Para imágenes y listas) */
-        .msg-content ul { list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-        .msg-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-        .msg-content strong { color: #00f0ff; font-weight: 600; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 4px; }
         
-        /* Estilo para las imágenes de los manuales en el chat */
-        .msg-content img {
-            border-radius: 0.5rem;
+        .glass-panel {
+            background: rgba(23, 23, 23, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(220, 38, 38, 0.15);
+        }
+
+        /* ESTILOS MÁGICOS PARA LAS IMÁGENES GENERADAS POR IA */
+        .markdown-body p { margin-bottom: 0.75rem; }
+        .markdown-body p:last-child { margin-bottom: 0; }
+        .markdown-body strong { color: #ffffff; font-weight: 600; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+        
+        .markdown-body img {
+            display: block;
             max-width: 100%;
             height: auto;
+            border-radius: 0.5rem;
             margin-top: 1rem;
             margin-bottom: 1rem;
-            border: 2px solid rgba(6, 182, 212, 0.4);
+            border: 2px solid rgba(220, 38, 38, 0.4);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             cursor: zoom-in;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .msg-content img:hover {
+        .markdown-body img:hover {
             transform: scale(1.02);
-            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.6);
-        }
-
-        /* Animación de entrada de mensajes */
-        .msg-enter { animation: fadeInUp 0.4s ease-out forwards; }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.6);
         }
     </style>
 </head>
-<body class="h-screen flex flex-col font-sans relative">
+<body class="antialiased selection:bg-pits-primary selection:text-white">
 
-    <!-- HEADER -->
-    <header class="glass-panel w-full p-4 flex items-center justify-between z-10 shadow-lg shadow-cyan-900/20 shrink-0">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-pits-cyan flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.5)]">
-                <i class="ph-fill ph-engine text-pits-dark text-2xl"></i>
-            </div>
-            <div>
-                <h1 class="font-display font-bold text-xl tracking-wider text-white neon-text">INFINITI <span class="text-pits-gold gold-text">PITS</span></h1>
-                <p class="text-xs text-cyan-400 font-mono flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Visual DB Online
-                </p>
-            </div>
-        </div>
-        <div class="flex gap-4">
-            <a href="index.html" class="text-gray-400 hover:text-white transition"><i class="ph ph-x text-2xl"></i></a>
-        </div>
-    </header>
+    <div id="root" class="min-h-screen flex flex-col"></div>
 
-    <!-- SELECTOR DE ROL -->
-    <div class="w-full bg-pits-panel border-b border-cyan-900/30 p-3 flex justify-center z-10 shrink-0">
-        <div class="bg-black/50 p-1 rounded-lg flex gap-1 border border-cyan-900/50 w-full max-w-md">
-            <button id="btn-owner" onclick="setRole('owner')" class="flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-cyan-400 bg-cyan-900/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-                <i class="ph-fill ph-car-profile text-lg"></i> Dueño de Auto
-            </button>
-            <button id="btn-mechanic" onclick="setRole('mechanic')" class="flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-300">
-                <i class="ph-fill ph-wrench text-lg"></i> Taller / Mecánico
-            </button>
-        </div>
-    </div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-    <!-- ÁREA DE CHAT -->
-    <main id="chat-box" class="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col gap-6 scroll-smooth bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] relative">
-        
-        <!-- Mensaje de Bienvenida -->
-        <div class="flex gap-4 max-w-3xl msg-enter">
-            <div class="w-10 h-10 rounded-full bg-pits-cyan flex-shrink-0 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.4)]">
-                <i class="ph-fill ph-robot text-pits-dark text-xl"></i>
-            </div>
-            <div class="glass-panel p-4 rounded-2xl rounded-tl-none text-sm md:text-base leading-relaxed text-gray-200 border-l-2 border-l-pits-cyan shadow-lg">
-                <p id="welcome-msg">¡Hola! Soy la IA de Infiniti Pits. ¿En qué te puedo ayudar hoy con tu vehículo?</p>
-            </div>
-        </div>
+        // ==========================================
+        // 1. CONFIGURACIÓN FIREBASE Y API
+        // ==========================================
+        const API_URL = "https://abunda-bca693eb3dbb.herokuapp.com/api/chat";
 
-    </main>
+        // SOBERANO: Reemplaza con tus llaves reales si deseas Firebase Auth,
+        // o déjalo vacío para usar el Modo Demo (ingresando cualquier correo con '@').
+        const firebaseConfig = {
+            apiKey: "", 
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
+        };
 
-    <!-- ZONA DE INPUT -->
-    <footer class="glass-panel p-4 pb-6 md:pb-4 border-t border-cyan-900/50 shrink-0">
-        <div class="max-w-4xl mx-auto relative flex items-end gap-2 bg-black/60 border border-cyan-800/50 rounded-2xl p-2 focus-within:border-pits-cyan transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-            <textarea id="user-input" rows="1" class="w-full bg-transparent text-white outline-none resize-none p-3 max-h-32 text-sm md:text-base font-sans" placeholder="Pide un torque, código OBD2 o diagrama..." onkeydown="handleEnter(event)"></textarea>
-            <button id="send-btn" onclick="sendMessage()" class="w-12 h-12 rounded-xl bg-pits-cyan hover:bg-pits-neon flex items-center justify-center text-pits-dark transition-all shadow-[0_0_10px_rgba(6,182,212,0.4)] hover:scale-105 flex-shrink-0 mb-1 mr-1">
-                <i class="ph-bold ph-paper-plane-right text-xl"></i>
-            </button>
-        </div>
-        <p class="text-center text-xs text-gray-500 mt-3 font-mono">Infiniti Pits by W Studio &copy; 2026. Data de ALLDATA & Mitchell Integrada.</p>
-    </footer>
+        let auth = null;
+        let isFirebaseActive = false;
 
-    <!-- MODAL DE VISOR DE IMÁGENES (LIGHTBOX) -->
-    <div id="image-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 transition-opacity duration-300 opacity-0" onclick="closeImageModal()">
-        <button class="absolute top-6 right-6 text-white bg-black/50 p-2 rounded-full hover:bg-pits-cyan hover:text-black transition z-50">
-            <i class="ph-bold ph-x text-2xl"></i>
-        </button>
-        <img id="modal-img" src="" alt="Diagrama Completo" class="max-w-full max-h-[90vh] object-contain rounded-lg border border-pits-cyan/30 shadow-[0_0_50px_rgba(6,182,212,0.2)] transform scale-95 transition-transform duration-300" onclick="event.stopPropagation();" />
-    </div>
-
-    <!-- LÓGICA DEL SISTEMA -->
-    <script>
-        // ⚠️ SOBERANO: COLOCA AQUÍ LA URL DE TU SERVIDOR HEROKU
-        const API_URL = "https://abunda-bca693eb3dbb.herokuapp.com/api/chat"; 
-
-        let currentUserType = "owner"; 
-        let chatHistory = [];
-
-        const chatBox = document.getElementById("chat-box");
-        const userInput = document.getElementById("user-input");
-        const btnOwner = document.getElementById("btn-owner");
-        const btnMechanic = document.getElementById("btn-mechanic");
-        const welcomeMsg = document.getElementById("welcome-msg");
-        
-        // Modal elements
-        const imageModal = document.getElementById("image-modal");
-        const modalImg = document.getElementById("modal-img");
-
-        // Configurar marked.js para seguridad
-        marked.setOptions({ breaks: true });
-
-        // Event listener para capturar clics en las imágenes del chat
-        chatBox.addEventListener('click', function(e) {
-            if (e.target.tagName === 'IMG') {
-                openImageModal(e.target.src);
+        try {
+            if (firebaseConfig.apiKey !== "") {
+                firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                isFirebaseActive = true;
             }
-        });
+        } catch (e) { console.error("Firebase Error:", e); }
 
-        function openImageModal(src) {
-            modalImg.src = src;
-            imageModal.classList.remove('hidden');
-            // Timeout para permitir que la clase se quite antes de cambiar la opacidad
-            setTimeout(() => {
-                imageModal.classList.remove('opacity-0');
-                modalImg.classList.remove('scale-95');
-                modalImg.classList.add('scale-100');
-            }, 10);
-        }
+        // ==========================================
+        // 2. PANTALLA DE LOGIN
+        // ==========================================
+        const LoginScreen = ({ onLoginSuccess }) => {
+            const [selectedRole, setSelectedRole] = useState("mechanic");
+            const [email, setEmail] = useState("");
+            const [password, setPassword] = useState("");
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState("");
 
-        function closeImageModal() {
-            imageModal.classList.add('opacity-0');
-            modalImg.classList.remove('scale-100');
-            modalImg.classList.add('scale-95');
-            setTimeout(() => {
-                imageModal.classList.add('hidden');
-                modalImg.src = "";
-            }, 300);
-        }
-
-        // AUTO-RESIZE DEL TEXTAREA
-        userInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-
-        // ENVIAR CON ENTER
-        function handleEnter(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            const handleLogin = async (e) => {
                 e.preventDefault();
-                sendMessage();
-            }
-        }
+                setLoading(true);
+                setError("");
 
-        // CAMBIO DE ROL
-        function setRole(role) {
-            currentUserType = role;
-            
-            if(role === 'owner') {
-                btnOwner.className = "flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-cyan-400 bg-cyan-900/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]";
-                btnMechanic.className = "flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-300 bg-transparent shadow-none";
-                welcomeMsg.innerText = "¡Hola! Soy la IA de Infiniti Pits. Como dueño del vehículo, estoy aquí para explicarte de forma sencilla el mantenimiento, averías o qué decirle a tu taller.";
-            } else {
-                btnMechanic.className = "flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-pits-gold bg-amber-900/40 shadow-[0_0_10px_rgba(245,158,11,0.3)]";
-                btnOwner.className = "flex-1 py-2 rounded-md font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 text-gray-500 hover:text-gray-300 bg-transparent shadow-none";
-                welcomeMsg.innerHTML = "Sistemas en línea, Colega. Acceso total a base de datos de <strong>ALLDATA, Mitchell1, Europeos, Motos y UTVs</strong>. Solicita torques, DTCs o <strong>diagramas de despiece</strong> y te los mostraré en pantalla.";
-            }
+                try {
+                    if (isFirebaseActive) {
+                        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                        onLoginSuccess(userCredential.user, selectedRole);
+                    } else {
+                        if (email.includes("@")) {
+                            setTimeout(() => {
+                                onLoginSuccess({ email: email, uid: "demo-123" }, selectedRole);
+                            }, 1000);
+                        } else {
+                            setError("Ingresa un correo electrónico válido.");
+                            setLoading(false);
+                        }
+                    }
+                } catch (err) {
+                    setError("Credenciales incorrectas o usuario no registrado.");
+                    setLoading(false);
+                }
+            };
 
-            chatHistory = [];
-        }
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4 bg-[url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center relative">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-0"></div>
+                    
+                    <div className="glass-panel p-8 md:p-10 rounded-3xl w-full max-w-md relative z-10 shadow-2xl border-t-2 border-t-pits-primary">
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-pits-primary rounded-xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(220,38,38,0.5)]">
+                                <i className="ph-fill ph-engine text-3xl text-white"></i>
+                            </div>
+                            <h1 className="text-3xl font-display font-bold tracking-tight mb-1 uppercase text-white">INFINITI PITS</h1>
+                            <p className="text-pits-accent text-xs font-mono tracking-widest uppercase">Acceso Autorizado</p>
+                        </div>
 
-        async function sendMessage() {
-            const text = userInput.value.trim();
-            if (!text) return;
+                        <form onSubmit={handleLogin} className="space-y-5">
+                            
+                            {/* ROLE SELECTION TOGGLE */}
+                            <div className="flex bg-black/50 p-1 rounded-xl mb-6 border border-pits-border">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedRole('mechanic')}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition duration-300 ${selectedRole === 'mechanic' ? 'bg-pits-primary text-white shadow-[0_0_10px_rgba(220,38,38,0.5)]' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    <i className="ph-fill ph-wrench mr-1"></i> Mecánico
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedRole('owner')}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition duration-300 ${selectedRole === 'owner' ? 'bg-blue-600 text-white shadow-[0_0_10px_rgba(37,99,235,0.5)]' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    <i className="ph-fill ph-car-profile mr-1"></i> Dueño de Auto
+                                </button>
+                            </div>
 
-            appendMessage("user", text);
-            userInput.value = "";
-            userInput.style.height = 'auto'; 
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Correo Electrónico</label>
+                                <div className="relative">
+                                    <i className="ph ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
+                                    <input 
+                                        type="email" required value={email} onChange={e=>setEmail(e.target.value)} 
+                                        className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-primary focus:ring-1 focus:ring-pits-primary transition"
+                                        placeholder="taller@ejemplo.com"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Contraseña</label>
+                                <div className="relative">
+                                    <i className="ph ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
+                                    <input 
+                                        type="password" required value={password} onChange={e=>setPassword(e.target.value)} 
+                                        className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-primary focus:ring-1 focus:ring-pits-primary transition"
+                                        placeholder="••••••••"
+                                    />
+                                </div>
+                            </div>
 
-            const typingId = showTypingIndicator();
+                            {error && <div className="p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-xs text-red-400 text-center font-mono">{error}</div>}
 
-            try {
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        message: text,
-                        user_type: currentUserType,
-                        history: chatHistory
-                    })
-                });
-
-                removeTypingIndicator(typingId);
-
-                if (!response.ok) throw new Error("Error en la matriz del servidor.");
-
-                const data = await response.json();
-                const aiReply = data.response;
-
-                appendMessage("ai", aiReply);
-
-                chatHistory.push({ role: "user", content: text });
-                chatHistory.push({ role: "ai", content: aiReply });
-
-                if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
-
-            } catch (error) {
-                console.error(error);
-                removeTypingIndicator(typingId);
-                appendMessage("ai", "⚠️ *Error de conexión cuántica:* No me pude comunicar con la Base de Datos. Verifica la conexión a Heroku.");
-            }
-        }
-
-        function appendMessage(sender, text) {
-            const msgDiv = document.createElement("div");
-            msgDiv.className = `flex gap-4 max-w-4xl msg-enter ${sender === 'user' ? 'self-end flex-row-reverse' : ''}`;
-
-            // 🌟 LA MAGIA: Convertimos el texto Markdown a HTML real para mostrar las imágenes
-            const htmlContent = marked.parse(text);
-
-            const avatar = sender === 'user' 
-                ? `<div class="w-10 h-10 rounded-full bg-gray-700 flex-shrink-0 flex items-center justify-center shadow-lg"><i class="ph-fill ph-user text-white text-xl"></i></div>`
-                : `<div class="w-10 h-10 rounded-full ${currentUserType === 'owner' ? 'bg-pits-cyan' : 'bg-pits-gold'} flex-shrink-0 flex items-center justify-center shadow-[0_0_10px_${currentUserType === 'owner' ? 'rgba(6,182,212,0.4)' : 'rgba(245,158,11,0.4)'}]"><i class="ph-fill ph-robot text-pits-dark text-xl"></i></div>`;
-
-            const bubbleClass = sender === 'user'
-                ? `bg-cyan-900/60 p-4 rounded-2xl rounded-tr-none text-sm md:text-base text-white border border-cyan-700/50 shadow-lg`
-                : `glass-panel p-5 rounded-2xl rounded-tl-none text-sm md:text-base leading-relaxed text-gray-200 border-l-2 ${currentUserType === 'owner' ? 'border-l-pits-cyan' : 'border-l-pits-gold'} msg-content shadow-lg w-full overflow-hidden`;
-
-            msgDiv.innerHTML = `
-                ${avatar}
-                <div class="${bubbleClass}">
-                    ${htmlContent}
+                            <button disabled={loading} type="submit" className="w-full py-4 bg-pits-primary hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-pits-primary/30 transition transform hover:-translate-y-1 disabled:opacity-50 uppercase tracking-widest text-sm">
+                                {loading ? <i className="ph ph-spinner-gap animate-spin text-xl"></i> : "Iniciar Sesión"}
+                            </button>
+                        </form>
+                    </div>
                 </div>
-            `;
+            );
+        };
 
-            chatBox.appendChild(msgDiv);
-            
-            // Esperar un poco a que las imágenes carguen para hacer scroll correctamente
-            setTimeout(scrollToBottom, 100);
-        }
+        // ==========================================
+        // 3. INTERFAZ DE CHAT CON SOPORTE VISUAL
+        // ==========================================
+        const ChatInterface = ({ role, onLogout }) => {
+            const [messages, setMessages] = useState([
+                { 
+                    role: 'ai', 
+                    content: role === 'mechanic' 
+                        ? 'Sistemas en línea, Colega. **Ingeniero Jefe PITS** preparado. Tengo acceso a las bases de datos de ALLDATA, Mitchell 1, manuales europeos y motocicletas. Ingresa tu código de falla, o solicita **torques y diagramas**.'
+                        : '¡Hola! Soy tu Asistente IA Automotriz. ¿Se encendió una luz en tu tablero o necesitas consejos de mantenimiento? Cuéntame los síntomas.'
+                }
+            ]);
+            const [input, setInput] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            const [modalImage, setModalImage] = useState(null); // Estado para el visor de imágenes
+            const messagesEndRef = useRef(null);
 
-        function showTypingIndicator() {
-            const id = "typing-" + Date.now();
-            const typingDiv = document.createElement("div");
-            typingDiv.id = id;
-            typingDiv.className = `flex gap-4 max-w-3xl msg-enter`;
-            
-            typingDiv.innerHTML = `
-                <div class="w-10 h-10 rounded-full ${currentUserType === 'owner' ? 'bg-pits-cyan' : 'bg-pits-gold'} flex-shrink-0 flex items-center justify-center shadow-lg opacity-50">
-                    <i class="ph-fill ph-robot text-pits-dark text-xl"></i>
+            useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+            const handleSend = async () => {
+                if (!input.trim()) return;
+                
+                const userText = input;
+                setMessages(prev => [...prev, { role: 'user', content: userText }]);
+                setInput('');
+                setIsLoading(true);
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            message: userText,
+                            user_type: role, // Enviamos el rol para que main.py sepa qué prompt usar
+                            history: messages.map(m => ({ role: m.role, content: m.content })) 
+                        })
+                    });
+
+                    if (!response.ok) throw new Error('Error de red');
+                    
+                    const data = await response.json();
+                    let formattedResponse = data.response || "Error de diagnóstico. Intenta de nuevo.";
+                    
+                    setMessages(prev => [...prev, { role: 'ai', content: formattedResponse }]);
+
+                } catch (error) {
+                    setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Conexión perdida con la matriz principal. Verifica tu internet." }]);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            // Delegación de eventos para capturar clics en las imágenes del chat
+            const handleChatClick = (e) => {
+                if (e.target.tagName === 'IMG') {
+                    setModalImage(e.target.src);
+                }
+            };
+
+            return (
+                <div className="flex flex-col h-screen bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] bg-pits-dark relative">
+                    
+                    {/* LIGHTBOX (VISOR DE DIAGRAMAS A PANTALLA COMPLETA) */}
+                    {modalImage && (
+                        <div 
+                            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out animate-fade-in"
+                            onClick={() => setModalImage(null)}
+                        >
+                            <button className="absolute top-6 right-6 text-white/50 hover:text-white transition bg-black/50 p-2 rounded-full">
+                                <i className="ph-bold ph-x text-2xl"></i>
+                            </button>
+                            <img 
+                                src={modalImage} 
+                                alt="Diagrama Ampliado" 
+                                className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-[0_0_50px_rgba(220,38,38,0.3)] border border-pits-primary/30"
+                                onClick={(e) => e.stopPropagation()} // Evita que se cierre al dar clic en la imagen
+                            />
+                        </div>
+                    )}
+
+                    <header className="glass-panel border-b border-pits-border p-4 flex items-center justify-between z-20 sticky top-0 shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-pits-primary flex items-center justify-center shadow-[0_0_10px_rgba(220,38,38,0.5)]">
+                                <i className="ph-fill ph-engine text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h1 className="font-display font-bold text-lg leading-tight uppercase tracking-wide text-white">Infiniti Pits</h1>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                    <span className="text-[10px] text-gray-400 font-mono tracking-widest uppercase">Base Visual Activa</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border hidden sm:block ${role === 'mechanic' ? 'bg-red-500/10 text-red-400 border-red-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}`}>
+                                {role === 'mechanic' ? 'Modo Profesional' : 'Modo Dueño'}
+                            </div>
+                            <button onClick={onLogout} className="w-10 h-10 rounded-xl bg-black/50 border border-pits-border text-gray-400 hover:text-white hover:border-red-500 transition flex items-center justify-center" title="Cerrar Sesión">
+                                <i className="ph-bold ph-sign-out text-xl"></i>
+                            </button>
+                        </div>
+                    </header>
+
+                    <main 
+                        className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6"
+                        onClick={handleChatClick} // Escucha los clics para el Lightbox
+                    >
+                        {messages.map((msg, idx) => (
+                            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`flex gap-3 max-w-[95%] md:max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                    <div className="flex-shrink-0 mt-1">
+                                        {msg.role === 'ai' ? (
+                                            <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-border flex items-center justify-center text-pits-primary shadow-[0_0_10px_rgba(220,38,38,0.3)]">
+                                                <i className="ph-fill ph-engine"></i>
+                                            </div>
+                                        ) : (
+                                            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white">
+                                                <i className="ph-fill ph-user"></i>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* 🌟 LA MAGIA: Renderizado de Markdown Seguro 🌟 */}
+                                    <div 
+                                        className={`p-4 md:p-5 rounded-2xl text-sm md:text-base leading-relaxed shadow-lg markdown-body ${
+                                            msg.role === 'user' 
+                                            ? 'bg-pits-panel border border-slate-700 text-white rounded-tr-none' 
+                                            : 'bg-black/80 border border-pits-primary/30 text-gray-300 rounded-tl-none'
+                                        }`}
+                                        dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}
+                                    >
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {isLoading && (
+                            <div className="flex justify-start">
+                                <div className="flex gap-3 max-w-[75%]">
+                                    <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-border flex items-center justify-center text-pits-primary shadow-[0_0_10px_rgba(220,38,38,0.3)] mt-1"><i className="ph-fill ph-engine"></i></div>
+                                    <div className="p-4 rounded-2xl rounded-tl-none bg-black/80 border border-pits-primary/30 flex items-center gap-3">
+                                        <i className="ph-bold ph-circle-notch animate-spin text-pits-primary"></i>
+                                        <span className="text-xs text-gray-400 font-mono">Extrayendo manuales y diagramas...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
+                    </main>
+
+                    <footer className="p-4 bg-pits-panel border-t border-pits-border z-20 shrink-0">
+                        <div className="max-w-5xl mx-auto relative flex gap-2">
+                            <input
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyPress={e => e.key === 'Enter' && handleSend()}
+                                placeholder={role === 'mechanic' ? "Ej: Dame el diagrama eléctrico de una Yamaha R1..." : "Ej: Me encendió la luz de Check Engine..."}
+                                className="w-full bg-black/50 border border-pits-border rounded-xl px-5 py-4 text-sm text-white focus:outline-none focus:border-pits-primary transition"
+                                disabled={isLoading}
+                            />
+                            <button
+                                onClick={handleSend}
+                                disabled={!input.trim() || isLoading}
+                                className="w-14 bg-pits-primary text-white rounded-xl flex items-center justify-center hover:bg-red-600 transition disabled:opacity-50 shadow-[0_0_15px_rgba(220,38,38,0.4)] shrink-0"
+                            >
+                                <i className="ph-bold ph-paper-plane-right text-xl"></i>
+                            </button>
+                        </div>
+                        <p className="text-center text-[10px] text-gray-500 mt-2 font-mono">
+                            Imágenes con fines ilustrativos. Siempre verifica los datos con el fabricante.
+                        </p>
+                    </footer>
                 </div>
-                <div class="glass-panel px-4 py-3 rounded-2xl rounded-tl-none flex items-center gap-1 w-16">
-                    <div class="w-2 h-2 rounded-full bg-pits-cyan typing-dot"></div>
-                    <div class="w-2 h-2 rounded-full bg-pits-cyan typing-dot"></div>
-                    <div class="w-2 h-2 rounded-full bg-pits-cyan typing-dot"></div>
-                </div>
-            `;
-            chatBox.appendChild(typingDiv);
-            scrollToBottom();
-            return id;
-        }
+            );
+        };
 
-        function removeTypingIndicator(id) {
-            const el = document.getElementById(id);
-            if (el) el.remove();
-        }
+        // ==========================================
+        // APP PRINCIPAL
+        // ==========================================
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [role, setRole] = useState(null);
 
-        function scrollToBottom() {
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+            useEffect(() => {
+                const savedRole = localStorage.getItem('infiniti_pits_role');
+                if (savedRole) setRole(savedRole);
+                
+                if (isFirebaseActive && auth) {
+                    const unsubscribe = auth.onAuthStateChanged((u) => {
+                        if (u) setUser(u);
+                    });
+                    return () => unsubscribe();
+                }
+            }, []);
+
+            const handleLoginSuccess = (userData, selectedRole) => {
+                localStorage.setItem('infiniti_pits_role', selectedRole);
+                setRole(selectedRole);
+                setUser(userData);
+            };
+
+            const handleLogout = async () => {
+                if (isFirebaseActive && auth) await auth.signOut();
+                localStorage.removeItem('infiniti_pits_role');
+                setRole(null);
+                setUser(null);
+            };
+
+            return (
+                <React.Fragment>
+                    {!user ? (
+                        <LoginScreen onLoginSuccess={handleLoginSuccess} />
+                    ) : (
+                        <ChatInterface role={role} onLogout={handleLogout} />
+                    )}
+                </React.Fragment>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
