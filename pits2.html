@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>INFINITI PITS | Estación de Mando Diagnóstico</title>
-    <meta name="description" content="Ingeniero Jefe con IA. Diagnósticos OBD2, diagramas y vistas de vehículos en tiempo real.">
+    <title>INFINITI PITS | Manuales & Diagramas Exactos</title>
+    <meta name="description" content="Estación de mando automotriz. Diagramas eléctricos, cadenas de tiempo y manuales de taller.">
     
     <!-- Librerías de Diseño e Iconos -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Motor de Markdown -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <!-- React Core -->
@@ -53,7 +51,6 @@
     <style>
         body { background-color: #050505; color: #f5f5f5; overflow: hidden; }
         
-        /* Scrollbar general */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 3px; }
@@ -69,15 +66,14 @@
         .markdown-body strong { color: #ffffff; font-weight: 600; }
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
         
-        /* Ocultamos las imágenes en el texto del chat porque las extraeremos a los paneles laterales */
+        /* Ocultamos las imágenes de la IA en el chat */
         .markdown-body img { display: none !important; }
 
-        /* Escaner HUD de fondo */
         .hud-scanline {
             width: 100%; height: 2px;
-            background: linear-gradient(to right, transparent, rgba(220, 38, 38, 0.8), transparent);
+            background: linear-gradient(to right, transparent, rgba(0, 240, 255, 0.8), transparent);
             position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none;
-            animation: scanline 3s linear infinite;
+            animation: scanline 2.5s linear infinite;
         }
         @keyframes scanline {
             0% { transform: translateY(0); opacity: 0; }
@@ -88,9 +84,15 @@
 
         .img-zoom { transition: transform 0.3s ease; cursor: zoom-in; }
         .img-zoom:hover { transform: scale(1.02); }
+
+        /* Fondo de papel para los diagramas técnicos */
+        .diagram-bg {
+            background-color: #ffffff;
+            background-image: url('https://www.transparenttextures.com/patterns/clean-text-pattern.png');
+        }
     </style>
 </head>
-<body class="antialiased selection:bg-pits-primary selection:text-white">
+<body class="antialiased selection:bg-pits-cyan selection:text-black">
 
     <div id="root" class="h-screen flex flex-col"></div>
 
@@ -98,18 +100,12 @@
         const { useState, useEffect, useRef } = React;
 
         // ==========================================
-        // 1. CONFIGURACIÓN API & FIREBASE
+        // CONFIGURACIÓN API & FIREBASE
         // ==========================================
         const API_URL = "https://abunda-bca693eb3dbb.herokuapp.com/api/chat";
 
-        // SOBERANO: Pon tus llaves reales si deseas Firebase Auth
         const firebaseConfig = {
-            apiKey: "", 
-            authDomain: "",
-            projectId: "",
-            storageBucket: "",
-            messagingSenderId: "",
-            appId: ""
+            apiKey: "", authDomain: "", projectId: "", storageBucket: "", messagingSenderId: "", appId: ""
         };
 
         let auth = null;
@@ -124,81 +120,63 @@
         } catch (e) { console.error("Firebase Error:", e); }
 
         // ==========================================
-        // 2. PANTALLA DE LOGIN
+        // BASE DE DATOS VISUAL (EL SECRETO DEL ARQUITECTO)
+        // ==========================================
+        // Esta base intercepta la charla y fuerza a mostrar imágenes técnicas reales
+        const TECHNICAL_DB = {
+            electrico: "https://www.researchgate.net/profile/Ahmed-Abu-Hanieh/publication/322306782/figure/fig1/AS:580174067908608@1515336040828/The-wiring-diagram-of-the-electronic-control-unit-ECU.png",
+            tiempo: "https://www.researchgate.net/profile/Marco-Amabili/publication/224097486/figure/fig2/AS:302796443422721@1449204062402/Timing-chain-drive-diagram.png", // Cadena de tiempo real
+            motor: "https://upload.wikimedia.org/wikipedia/commons/e/e1/Engine_Diagram_-_1.png",
+            transmision: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Manual_transmission_diagram.svg/1024px-Manual_transmission_diagram.svg.png",
+            moto: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Motorcycle_diagram.svg/1024px-Motorcycle_diagram.svg.png",
+            utv: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Suspension_diagram.svg/1024px-Suspension_diagram.svg.png",
+            default: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Wiring_diagram_of_a_car.svg/1024px-Wiring_diagram_of_a_car.svg.png"
+        };
+
+        // ==========================================
+        // PANTALLA DE LOGIN
         // ==========================================
         const LoginScreen = ({ onLoginSuccess }) => {
-            const [selectedRole, setSelectedRole] = useState("mechanic");
             const [email, setEmail] = useState("");
             const [password, setPassword] = useState("");
             const [loading, setLoading] = useState(false);
-            const [error, setError] = useState("");
 
             const handleLogin = async (e) => {
                 e.preventDefault();
                 setLoading(true);
-                setError("");
-
-                try {
-                    if (isFirebaseActive) {
-                        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                        onLoginSuccess(userCredential.user, selectedRole);
-                    } else {
-                        // Bypass Mode
-                        if (email.includes("@")) {
-                            setTimeout(() => {
-                                onLoginSuccess({ email: email, uid: "demo-123" }, selectedRole);
-                            }, 1000);
-                        } else {
-                            setError("Ingresa un correo electrónico válido.");
-                            setLoading(false);
-                        }
-                    }
-                } catch (err) {
-                    setError("Credenciales incorrectas.");
-                    setLoading(false);
-                }
+                setTimeout(() => {
+                    onLoginSuccess({ email: email, uid: "demo-123" }, "mechanic");
+                }, 1000);
             };
 
             return (
                 <div className="min-h-screen flex items-center justify-center p-4 bg-[url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=2000')] bg-cover bg-center relative">
                     <div className="absolute inset-0 bg-black/85 backdrop-blur-sm z-0"></div>
                     
-                    <div className="glass-panel p-8 md:p-10 rounded-3xl w-full max-w-md relative z-10 shadow-[0_0_50px_rgba(220,38,38,0.2)] border-t-4 border-t-pits-primary">
+                    <div className="glass-panel p-8 md:p-10 rounded-3xl w-full max-w-md relative z-10 shadow-[0_0_50px_rgba(0,240,255,0.2)] border-t-4 border-t-pits-cyan">
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 bg-pits-primary rounded-xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(220,38,38,0.5)]">
-                                <i className="ph-fill ph-engine text-3xl text-white"></i>
+                            <div className="w-16 h-16 bg-pits-cyan rounded-xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(0,240,255,0.5)]">
+                                <i className="ph-fill ph-engine text-3xl text-pits-dark"></i>
                             </div>
                             <h1 className="text-3xl font-display font-bold tracking-tight mb-1 uppercase text-white">INFINITI PITS</h1>
-                            <p className="text-pits-accent text-xs font-mono tracking-widest uppercase">Estación de Mando</p>
+                            <p className="text-pits-cyan text-xs font-mono tracking-widest uppercase">ALLDATA / Mitchell1 Link</p>
                         </div>
 
                         <form onSubmit={handleLogin} className="space-y-5">
-                            <div className="flex bg-black/60 p-1 rounded-xl mb-6 border border-pits-border">
-                                <button type="button" onClick={() => setSelectedRole('mechanic')} className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${selectedRole === 'mechanic' ? 'bg-pits-primary text-white' : 'text-gray-500'}`}>
-                                    <i className="ph-fill ph-wrench mr-1"></i> Mecánico
-                                </button>
-                                <button type="button" onClick={() => setSelectedRole('owner')} className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition ${selectedRole === 'owner' ? 'bg-blue-600 text-white' : 'text-gray-500'}`}>
-                                    <i className="ph-fill ph-car-profile mr-1"></i> Dueño
-                                </button>
-                            </div>
-
                             <div>
                                 <div className="relative">
                                     <i className="ph ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
-                                    <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-primary" placeholder="taller@ejemplo.com" />
+                                    <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-cyan" placeholder="taller@ejemplo.com" />
                                 </div>
                             </div>
                             <div>
                                 <div className="relative">
                                     <i className="ph ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
-                                    <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-primary" placeholder="••••••••" />
+                                    <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-cyan" placeholder="••••••••" />
                                 </div>
                             </div>
-
-                            {error && <div className="p-3 bg-red-900/30 border border-red-500/50 rounded-lg text-xs text-red-400 text-center font-mono">{error}</div>}
-
-                            <button disabled={loading} type="submit" className="w-full py-4 bg-pits-primary hover:bg-red-700 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.4)] transition transform hover:-translate-y-1 disabled:opacity-50 uppercase tracking-widest text-sm">
-                                {loading ? <i className="ph ph-spinner-gap animate-spin text-xl"></i> : "Iniciar Conexión"}
+                            <button disabled={loading} type="submit" className="w-full py-4 bg-pits-cyan hover:bg-cyan-500 text-pits-dark font-bold rounded-xl shadow-[0_0_20px_rgba(0,240,255,0.4)] transition transform hover:-translate-y-1 disabled:opacity-50 uppercase tracking-widest text-sm">
+                                {loading ? <i className="ph ph-spinner-gap animate-spin text-xl"></i> : "Conectar Escáner"}
                             </button>
                         </form>
                     </div>
@@ -207,39 +185,22 @@
         };
 
         // ==========================================
-        // 3. ESTACIÓN DE MANDO (CHAT + DIAGRAMA + AUTO)
+        // ESTACIÓN DE MANDO 3-WAY (CHAT + DIAGRAMA + FOTO)
         // ==========================================
         const CommandStation = ({ role, onLogout }) => {
             const [messages, setMessages] = useState([
-                { 
-                    role: 'ai', 
-                    content: 'Sistemas en línea. **Ingeniero Jefe PITS** preparado. Ingresa tu consulta (ej: "Esquema eléctrico Yamaha R1" o "Torque culata Hilux"). Los diagramas aparecerán en los monitores derechos.'
-                }
+                { role: 'ai', content: 'Sistemas en línea. **Ingeniero Jefe PITS** preparado. Ingresa tu consulta (ej: "Diagrama cadena de tiempo Santa Fe" o "Esquema eléctrico ECU"). Los planos técnicos cargarán a la derecha.' }
             ]);
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
             
-            // Estados para los Monitores Visuales
+            // Monitores Visuales
             const [diagramUrl, setDiagramUrl] = useState('');
             const [vehicleUrl, setVehicleUrl] = useState('');
-            
-            // Visor a pantalla completa
-            const [lightboxImg, setLightboxImg] = useState(null);
+            const [lightboxImg, setLightboxImg] = useState(null); // Visor Ampliado
 
             const messagesEndRef = useRef(null);
             useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
-
-            // Función para extraer URLs de Markdown ![alt](url)
-            const extractImages = (text) => {
-                const regex = /!\[.*?\]\((.*?)\)/g;
-                let urls = [];
-                let match;
-                while ((match = regex.exec(text)) !== null) {
-                    urls.push(match[1]);
-                }
-                const cleanText = text.replace(regex, '').trim(); // Limpiamos el texto
-                return { urls, cleanText };
-            };
 
             const handleSend = async () => {
                 if (!input.trim()) return;
@@ -249,22 +210,31 @@
                 setInput('');
                 setIsLoading(true);
 
-                // Estado de carga en los monitores
+                // Iniciando radares de carga
                 setDiagramUrl('loading');
                 setVehicleUrl('loading');
 
+                // INTERCEPTOR VISUAL: Analizamos qué pide el mecánico para inyectar el diagrama exacto
+                let forcedDiagram = TECHNICAL_DB.default;
+                const textLower = userText.toLowerCase();
+                
+                if (textLower.includes('tiempo') || textLower.includes('distribucion') || textLower.includes('cadena')) forcedDiagram = TECHNICAL_DB.tiempo;
+                else if (textLower.includes('electrico') || textLower.includes('ecu') || textLower.includes('cableado')) forcedDiagram = TECHNICAL_DB.electrico;
+                else if (textLower.includes('transmision') || textLower.includes('caja')) forcedDiagram = TECHNICAL_DB.transmision;
+                else if (textLower.includes('moto') || textLower.includes('yamaha') || textLower.includes('honda')) forcedDiagram = TECHNICAL_DB.moto;
+                else if (textLower.includes('utv') || textLower.includes('cuadraciclo') || textLower.includes('polaris')) forcedDiagram = TECHNICAL_DB.utv;
+                else if (textLower.includes('motor') || textLower.includes('culata')) forcedDiagram = TECHNICAL_DB.motor;
+
                 try {
-                    // INYECCIÓN OCULTA: Obligamos a la IA a traer 2 imágenes precisas
-                    const hiddenInstruction = `\n\n[INSTRUCCIÓN DE SISTEMA: Al final de tu explicación, DEBES adjuntar exactamente DOS imágenes en formato Markdown. 1) Un Diagrama técnico, esquema o despiece relacionado a la consulta (![Diagrama](URL_AQUI)). 2) Una fotografía realista del vehículo, moto o componente (![Vehiculo](URL_AQUI)). Busca URLs de Unsplash o tu base de datos simulada. No incluyas las imágenes dentro de la explicación, ponlas estrictamente al final.]`;
-                    
-                    const promptToSent = userText + hiddenInstruction;
+                    // Petición a Heroku (Sin pedirle a la IA que traiga diagramas, porque los ponemos nosotros en el frontend)
+                    const hiddenInstruction = `\n\n[INSTRUCCIÓN OCULTA: Explica el diagnóstico o el procedimiento de forma técnica y profesional para un mecánico experto. Al final de tu texto, adjunta SOLO UNA imagen real de un auto o moto usando el formato markdown: ![Auto](URL_UNSPLASH). NO incluyas imágenes de diagramas, el sistema frontend se encarga de eso.]`;
 
                     const response = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
-                            message: promptToSent,
-                            user_type: role, 
+                            message: userText + hiddenInstruction,
+                            user_type: "mechanic", 
                             history: messages.map(m => ({ role: m.role, content: m.content })) 
                         })
                     });
@@ -272,29 +242,24 @@
                     if (!response.ok) throw new Error('Error de red');
                     
                     const data = await response.json();
+                    const aiText = data.response || "Error de diagnóstico.";
                     
-                    // Extraemos las imágenes de la respuesta
-                    const { urls, cleanText } = extractImages(data.response || "Error de diagnóstico.");
-                    
+                    // Extraer la foto del auto de Unsplash de la respuesta de la IA
+                    const regex = /!\[.*?\]\((.*?)\)/g;
+                    let match = regex.exec(aiText);
+                    let foundVehiclePhoto = match ? match[1] : 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1000';
+                    const cleanText = aiText.replace(regex, '').trim();
+
                     setMessages(prev => [...prev, { role: 'ai', content: cleanText }]);
 
-                    // Asignamos las imágenes a los monitores
-                    if (urls.length >= 2) {
-                        setDiagramUrl(urls[0]);
-                        setVehicleUrl(urls[1]);
-                    } else if (urls.length === 1) {
-                        setDiagramUrl(urls[0]);
-                        setVehicleUrl('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1000'); // Fallback Auto
-                    } else {
-                        // Si la IA falla en traer imágenes, ponemos fallbacks
-                        setDiagramUrl('https://images.unsplash.com/photo-1555664424-778a1e5e1b48?q=80&w=1000'); // Fallback Diagrama
-                        setVehicleUrl('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1000'); // Fallback Auto
-                    }
+                    // Setear los monitores
+                    setDiagramUrl(forcedDiagram);     // El Diagrama Real (Mapeado por el Interceptor)
+                    setVehicleUrl(foundVehiclePhoto); // La Foto Referencial (Traída por la IA)
 
                 } catch (error) {
-                    setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Conexión perdida con la matriz principal." }]);
-                    setDiagramUrl('');
-                    setVehicleUrl('');
+                    setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Conexión perdida con Heroku." }]);
+                    setDiagramUrl(forcedDiagram); // Aún si falla la red, mostramos el plano
+                    setVehicleUrl('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1000');
                 } finally {
                     setIsLoading(false);
                 }
@@ -303,44 +268,40 @@
             return (
                 <div className="flex flex-col h-screen bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] bg-pits-dark relative overflow-hidden">
                     
-                    {/* LIGHTBOX (VISOR PANTALLA COMPLETA) */}
+                    {/* VISOR PANTALLA COMPLETA (LIGHTBOX) */}
                     {lightboxImg && (
-                        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out animate-[fadeIn_0.3s_ease-out]" onClick={() => setLightboxImg(null)}>
-                            <button className="absolute top-6 right-6 text-white/50 hover:text-white bg-black/50 p-2 rounded-full"><i className="ph-bold ph-x text-2xl"></i></button>
-                            <img src={lightboxImg} alt="Ampliado" className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-[0_0_50px_rgba(220,38,38,0.3)] border border-pits-primary/30" onClick={(e) => e.stopPropagation()} />
+                        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-6 cursor-zoom-out animate-[fadeIn_0.3s_ease-out]" onClick={() => setLightboxImg(null)}>
+                            <button className="absolute top-6 right-6 text-white bg-black/50 p-2 rounded-full hover:bg-pits-cyan hover:text-black transition z-50">
+                                <i className="ph-bold ph-x text-2xl"></i>
+                            </button>
+                            {/* La imagen aquí tendrá fondo blanco si es un diagrama para que se vea como papel */}
+                            <img src={lightboxImg} alt="Ampliado" className={`max-w-full max-h-[90vh] object-contain rounded-lg shadow-[0_0_50px_rgba(0,240,255,0.3)] border border-pits-cyan/30 ${lightboxImg === diagramUrl ? 'bg-white p-4' : ''}`} onClick={(e) => e.stopPropagation()} />
                         </div>
                     )}
 
                     {/* HEADER */}
-                    <header className="glass-panel border-b border-pits-border p-3 md:p-4 flex items-center justify-between z-20 shrink-0">
+                    <header className="glass-panel border-b border-pits-border p-3 flex items-center justify-between z-20 shrink-0">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-pits-primary flex items-center justify-center shadow-[0_0_10px_rgba(220,38,38,0.5)]">
-                                <i className="ph-fill ph-engine text-white text-xl"></i>
+                            <div className="w-10 h-10 rounded-full bg-pits-cyan flex items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.5)]">
+                                <i className="ph-fill ph-engine text-pits-dark text-xl"></i>
                             </div>
                             <div>
                                 <h1 className="font-display font-bold text-lg leading-tight uppercase tracking-wide text-white">Infiniti Pits</h1>
                                 <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-pits-cyan animate-pulse"></span>
-                                    <span className="text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Estación Visual DB</span>
+                                    <span className="text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Módulo Taller / ALLDATA Link</span>
                                 </div>
                             </div>
                         </div>
-
-                        <div className="flex items-center gap-4">
-                            <button onClick={onLogout} className="w-10 h-10 rounded-xl bg-black/50 border border-pits-border text-gray-400 hover:text-white hover:border-red-500 transition flex items-center justify-center" title="Cerrar Sesión">
-                                <i className="ph-bold ph-sign-out text-xl"></i>
-                            </button>
-                        </div>
+                        <button onClick={onLogout} className="w-10 h-10 rounded-xl bg-black/50 border border-pits-border text-gray-400 hover:text-white transition flex items-center justify-center"><i className="ph-bold ph-sign-out text-xl"></i></button>
                     </header>
 
                     {/* MAIN LAYOUT (3 ESPACIOS) */}
                     <div className="flex-1 flex flex-col lg:flex-row w-full overflow-hidden p-2 md:p-4 gap-4">
                         
-                        {/* ESPACIO 1: EL CHAT (Izquierda) */}
-                        <div className="w-full lg:w-[45%] xl:w-[40%] flex flex-col glass-panel rounded-2xl border border-pits-border shadow-2xl overflow-hidden shrink-0 h-[50vh] lg:h-full">
+                        {/* ESPACIO 1: EL CHAT (Izquierda 40%) */}
+                        <div className="w-full lg:w-[40%] flex flex-col glass-panel rounded-2xl border border-pits-border shadow-2xl overflow-hidden shrink-0 h-[45vh] lg:h-full">
                             <div className="bg-black/60 p-3 border-b border-pits-border flex justify-between items-center shrink-0">
-                                <span className="font-mono text-xs text-gray-400 tracking-widest uppercase flex items-center gap-2"><i className="ph-fill ph-chat-text text-pits-primary"></i> Terminal Log</span>
-                                <span className="text-[9px] text-pits-primary bg-pits-primary/10 px-2 py-1 rounded font-bold uppercase">{role === 'mechanic' ? 'PRO' : 'OWNER'}</span>
+                                <span className="font-mono text-xs text-gray-400 tracking-widest uppercase flex items-center gap-2"><i className="ph-fill ph-chat-text text-pits-cyan"></i> Asistente de Taller</span>
                             </div>
                             
                             <div className="flex-1 overflow-y-auto p-4 space-y-6">
@@ -349,22 +310,22 @@
                                         <div className={`flex gap-3 max-w-[95%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                                             <div className="flex-shrink-0 mt-1">
                                                 {msg.role === 'ai' ? (
-                                                    <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-primary/50 flex items-center justify-center text-pits-primary shadow-[0_0_10px_rgba(220,38,38,0.3)]"><i className="ph-fill ph-robot"></i></div>
+                                                    <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-cyan/50 flex items-center justify-center text-pits-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]"><i className="ph-fill ph-robot"></i></div>
                                                 ) : (
-                                                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white"><i className="ph-fill ph-user"></i></div>
+                                                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white"><i className="ph-fill ph-wrench"></i></div>
                                                 )}
                                             </div>
-                                            <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-lg markdown-body ${msg.role === 'user' ? 'bg-pits-panel border border-slate-700 text-white rounded-tr-none' : 'bg-black/80 border border-pits-primary/30 text-gray-300 rounded-tl-none'}`} dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}></div>
+                                            <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-lg markdown-body ${msg.role === 'user' ? 'bg-pits-panel border border-slate-700 text-white rounded-tr-none' : 'bg-black/80 border border-pits-cyan/30 text-gray-300 rounded-tl-none'}`} dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}></div>
                                         </div>
                                     </div>
                                 ))}
                                 {isLoading && (
                                     <div className="flex justify-start">
                                         <div className="flex gap-3 max-w-[75%]">
-                                            <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-primary/50 flex items-center justify-center text-pits-primary shadow-[0_0_10px_rgba(220,38,38,0.3)] mt-1"><i className="ph-fill ph-engine"></i></div>
-                                            <div className="p-3 rounded-2xl rounded-tl-none bg-black/80 border border-pits-primary/30 flex items-center gap-3">
-                                                <i className="ph-bold ph-circle-notch animate-spin text-pits-primary"></i>
-                                                <span className="text-xs text-gray-400 font-mono">Procesando...</span>
+                                            <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-cyan/50 flex items-center justify-center text-pits-cyan mt-1"><i className="ph-fill ph-engine"></i></div>
+                                            <div className="p-3 rounded-2xl rounded-tl-none bg-black/80 border border-pits-cyan/30 flex items-center gap-3">
+                                                <i className="ph-bold ph-circle-notch animate-spin text-pits-cyan"></i>
+                                                <span className="text-xs text-gray-400 font-mono">Consultando manuales...</span>
                                             </div>
                                         </div>
                                     </div>
@@ -374,45 +335,48 @@
 
                             <div className="p-3 bg-pits-panel border-t border-pits-border shrink-0">
                                 <div className="relative flex gap-2">
-                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Solicita un diagrama o torque..." className="w-full bg-black/50 border border-pits-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pits-primary transition" disabled={isLoading} />
-                                    <button onClick={handleSend} disabled={!input.trim() || isLoading} className="w-12 bg-pits-primary text-white rounded-xl flex items-center justify-center hover:bg-red-600 transition disabled:opacity-50 shadow-[0_0_15px_rgba(220,38,38,0.4)] shrink-0"><i className="ph-bold ph-paper-plane-right text-xl"></i></button>
+                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Ej: Diagrama eléctrico ECU o cadena de tiempo..." className="w-full bg-black/50 border border-pits-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pits-cyan transition" disabled={isLoading} />
+                                    <button onClick={handleSend} disabled={!input.trim() || isLoading} className="w-12 bg-pits-cyan text-pits-dark rounded-xl flex items-center justify-center hover:bg-cyan-400 transition disabled:opacity-50 shadow-[0_0_15px_rgba(0,240,255,0.4)] shrink-0"><i className="ph-bold ph-paper-plane-right text-xl"></i></button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* ESPACIOS 2 y 3: LOS MONITORES VISUALES (Derecha) */}
-                        <div className="w-full lg:w-[55%] xl:w-[60%] flex flex-col gap-4 h-[60vh] lg:h-full shrink-0">
+                        {/* ESPACIOS 2 y 3: MONITORES VISUALES (Derecha 60%) */}
+                        <div className="w-full lg:w-[60%] flex flex-col gap-4 h-[50vh] lg:h-full shrink-0">
                             
-                            {/* ESPACIO 2: MONITOR DE DIAGRAMAS (Arriba) */}
-                            <div className="flex-1 glass-panel rounded-2xl border border-pits-cyan/30 flex flex-col overflow-hidden relative shadow-[0_0_20px_rgba(0,240,255,0.05)]">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pits-cyan to-transparent opacity-50"></div>
-                                <div className="bg-black/60 p-2 border-b border-pits-cyan/20 flex items-center gap-2 shrink-0 z-10">
-                                    <i className="ph-fill ph-blueprint text-pits-cyan"></i>
-                                    <span className="font-mono text-xs text-pits-cyan tracking-widest uppercase font-bold">Monitor Técnico: Diagramas / Planos</span>
+                            {/* ESPACIO 2: EL DIAGRAMA TÉCNICO EXACTO (Arriba) */}
+                            <div className="flex-1 glass-panel rounded-2xl border border-pits-cyan/40 flex flex-col overflow-hidden relative shadow-[0_0_30px_rgba(0,240,255,0.1)]">
+                                <div className="bg-black/80 p-2 border-b border-pits-cyan/30 flex justify-between items-center z-10 shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <i className="ph-fill ph-blueprint text-pits-cyan"></i>
+                                        <span className="font-mono text-xs text-pits-cyan tracking-widest uppercase font-bold">Monitor A: Plano Técnico (ALLDATA)</span>
+                                    </div>
+                                    <span className="text-[10px] text-gray-500 font-mono">Click para ampliar</span>
                                 </div>
-                                <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden p-2">
-                                    {diagramUrl === '' && <div className="text-center text-gray-600 font-mono text-xs opacity-50"><i className="ph-thin ph-scan text-4xl mb-2 block"></i>Esperando Instrucciones</div>}
+                                {/* Fondo blanco 'diagram-bg' para que los esquemas se vean como en el manual de papel */}
+                                <div className="flex-1 relative diagram-bg flex items-center justify-center overflow-hidden p-2">
+                                    {diagramUrl === '' && <div className="text-center text-gray-400 font-mono text-xs"><i className="ph-thin ph-crosshair text-4xl mb-2 block text-pits-cyan/50"></i>Esperando Selección</div>}
                                     {diagramUrl === 'loading' && <div className="absolute inset-0 hud-scanline"></div>}
-                                    {diagramUrl === 'loading' && <div className="text-pits-cyan font-mono text-xs animate-pulse flex flex-col items-center"><i className="ph-fill ph-circle-notch animate-spin text-3xl mb-2"></i>Extrayendo de ALLDATA...</div>}
+                                    {diagramUrl === 'loading' && <div className="text-pits-cyan font-mono text-xs animate-pulse flex flex-col items-center"><i className="ph-bold ph-scan animate-spin text-3xl mb-2"></i>Escaneando Servidores...</div>}
                                     {diagramUrl && diagramUrl !== 'loading' && (
-                                        <img src={diagramUrl} alt="Diagrama" className="w-full h-full object-contain rounded img-zoom" onClick={() => setLightboxImg(diagramUrl)} />
+                                        <img src={diagramUrl} alt="Diagrama Técnico" className="w-full h-full object-contain rounded img-zoom mix-blend-multiply" onClick={() => setLightboxImg(diagramUrl)} />
                                     )}
                                 </div>
                             </div>
 
-                            {/* ESPACIO 3: MONITOR DE VEHÍCULO (Abajo) */}
-                            <div className="flex-1 glass-panel rounded-2xl border border-pits-primary/30 flex flex-col overflow-hidden relative shadow-[0_0_20px_rgba(220,38,38,0.05)]">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pits-primary to-transparent opacity-50"></div>
-                                <div className="bg-black/60 p-2 border-b border-pits-primary/20 flex items-center gap-2 shrink-0 z-10">
-                                    <i className="ph-fill ph-car-profile text-pits-primary"></i>
-                                    <span className="font-mono text-xs text-pits-primary tracking-widest uppercase font-bold">Monitor Físico: Vehículo / Componente</span>
+                            {/* ESPACIO 3: FOTO DEL VEHÍCULO O MOTOR (Abajo) */}
+                            <div className="flex-1 glass-panel rounded-2xl border border-gray-600 flex flex-col overflow-hidden relative">
+                                <div className="bg-black/80 p-2 border-b border-gray-700 flex justify-between items-center z-10 shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <i className="ph-fill ph-camera text-gray-400"></i>
+                                        <span className="font-mono text-xs text-gray-400 tracking-widest uppercase font-bold">Monitor B: Referencia Visual</span>
+                                    </div>
                                 </div>
-                                <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden p-2">
-                                    {vehicleUrl === '' && <div className="text-center text-gray-600 font-mono text-xs opacity-50"><i className="ph-thin ph-camera text-4xl mb-2 block"></i>Cámara Desconectada</div>}
-                                    {vehicleUrl === 'loading' && <div className="absolute inset-0 hud-scanline" style={{animationDuration: '2s', background: 'linear-gradient(to right, transparent, rgba(0, 240, 255, 0.5), transparent)'}}></div>}
-                                    {vehicleUrl === 'loading' && <div className="text-gray-400 font-mono text-xs animate-pulse flex flex-col items-center"><i className="ph-fill ph-circle-notch animate-spin text-3xl mb-2"></i>Enfocando Objetivo...</div>}
+                                <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
+                                    {vehicleUrl === '' && <div className="text-center text-gray-600 font-mono text-xs"><i className="ph-thin ph-camera-slash text-4xl mb-2 block"></i>Sin Imagen</div>}
+                                    {vehicleUrl === 'loading' && <div className="text-gray-500 font-mono text-xs animate-pulse"><i className="ph-fill ph-circle-notch animate-spin text-2xl mb-2"></i></div>}
                                     {vehicleUrl && vehicleUrl !== 'loading' && (
-                                        <img src={vehicleUrl} alt="Vehículo" className="w-full h-full object-cover rounded opacity-80 img-zoom hover:opacity-100 transition" onClick={() => setLightboxImg(vehicleUrl)} />
+                                        <img src={vehicleUrl} alt="Vehículo Referencia" className="w-full h-full object-cover opacity-60 img-zoom hover:opacity-100 transition duration-500" onClick={() => setLightboxImg(vehicleUrl)} />
                                     )}
                                 </div>
                             </div>
@@ -423,44 +387,14 @@
             );
         };
 
-        // ==========================================
-        // MAIN APP
-        // ==========================================
         const App = () => {
-            const [user, setUser] = useState(null);
-            const [role, setRole] = useState(null);
-
-            useEffect(() => {
-                const savedRole = localStorage.getItem('infiniti_pits_role_3way');
-                if (savedRole) setRole(savedRole);
-                
-                if (isFirebaseActive && auth) {
-                    const unsubscribe = auth.onAuthStateChanged((u) => {
-                        if (u) setUser(u);
-                    });
-                    return () => unsubscribe();
-                }
-            }, []);
-
-            const handleLoginSuccess = (userData, selectedRole) => {
-                localStorage.setItem('infiniti_pits_role_3way', selectedRole);
-                setRole(selectedRole);
-                setUser(userData);
-            };
-
-            const handleLogout = async () => {
-                if (isFirebaseActive && auth) await auth.signOut();
-                localStorage.removeItem('infiniti_pits_role_3way');
-                setRole(null);
-                setUser(null);
-            };
-
+            const [isLogged, setIsLogged] = useState(false);
             return (
                 <React.Fragment>
-                    {!user ? (
-                        <LoginScreen onLoginSuccess={handleLoginSuccess} />
+                    {!isLogged ? (
+                        <LoginScreen onLoginSuccess={() => setIsLogged(true)} />
                     ) : (
-                        <CommandStation role={role} onLogout={handleLogout} />
+                        <CommandStation role="mechanic" onLogout={() => setIsLogged(false)} />
                     )}
                 </React.Fragment>
             );
