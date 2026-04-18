@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>INFINITI PITS | Database de Diagramas Profesionales</title>
-    <meta name="description" content="Estación de mando automotriz. Diagramas eléctricos, cadenas de tiempo y manuales de taller.">
+    <title>INFINITI PITS | Terminal Profesional (Base64)</title>
+    <meta name="description" content="Estación de mando automotriz. Diagramas eléctricos y cadenas de tiempo cargados en Base64.">
     
     <!-- Librerías de Diseño e Iconos -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -63,9 +63,8 @@
         .markdown-body p { margin-bottom: 0.75rem; line-height: 1.6; }
         .markdown-body strong { color: #ffffff; font-weight: 600; }
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; color: #cbd5e1; }
-        .markdown-body img { display: none !important; } /* Ocultamos imgs en el texto por seguridad */
+        .markdown-body img { display: none !important; }
 
-        /* Fondo de los diagramas técnicos (Estilo Papel) */
         .diagram-bg {
             background-color: #f8fafc;
             background-image: 
@@ -91,15 +90,29 @@
 <body class="antialiased selection:bg-pits-cyan selection:text-pits-dark">
 
     <div id="root" class="h-screen flex flex-col relative z-10"></div>
-    
-    <!-- Malla de fondo sutil -->
     <div class="fixed inset-0 pointer-events-none z-0" style="background-image: radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 1px, transparent 1px); background-size: 30px 30px;"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // ⚠️ SOBERANO: URL DE TU BACKEND EN HEROKU 
+        // ==========================================
+        // 1. CONFIGURACIÓN API
+        // ==========================================
         const API_URL = "https://abunda-bca693eb3dbb.herokuapp.com/api/chat";
+
+        // ==========================================
+        // 2. BASE DE DATOS JSON + BASE64 (LA MAGIA)
+        // ==========================================
+        // Soberano: Aquí es donde pegarás el código Base64 de las imágenes que subiste.
+        // He puesto un código de prueba en "default" para que veas cómo funciona inmediatamente.
+        
+        const DIAGRAM_DATABASE_B64 = {
+            "tiempo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBzdHlsZT0iYmFja2dyb3VuZDojZmZmOyBmb250LWZhbWlseTptb25vc3BhY2UiPgogIDxwYXRoIGQ9Ik01MCw1MCBMNzUwLDUwIE01MCwxMDAgTDc1MCwxMDAgTTIwMCw1MCBMMjAwLDQwMCIgc3Ryb2tlPSIjMDZiNmQ0IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjMwMCIgeT0iMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjQiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjI3NSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBmMTcyYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RElBR1JBTUEgREUgVElFTVBPPC90ZXh0PgogIDx0ZXh0IHg9IjQwMCIgeT0iMzEwIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjQ3NDhiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4oQkFTRTY0IFNpbXVsYWRvIC0gUGVnYWEgYXF1w60gdHUgY8OzZGlnbyk8L3RleHQ+Cjwvc3ZnPg==",
+            
+            "electrico": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBzdHlsZT0iYmFja2dyb3VuZDojZmZmOyBmb250LWZhbWlseTptb25vc3BhY2UiPgogIDxwYXRoIGQ9Ik01MCw1MCBMNzUwLDUwIE01MCwxMDAgTDc1MCwxMDAgTTIwMCw1MCBMMjAwLDQwMCIgc3Ryb2tlPSIjMDZiNmQ0IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjMwMCIgeT0iMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjQiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjI3NSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBmMTcyYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RElBR1JBTUEgRUzDiUNUUklDTzwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjMxMCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+KEJBU0U2NCBTaW11bGFkbyAtIFBlZ2EgYXF1w60gdHUgY8OzZGlnbyk8L3RleHQ+Cjwvc3ZnPg==",
+            
+            "default": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBzdHlsZT0iYmFja2dyb3VuZDojZmZmOyBmb250LWZhbWlseTptb25vc3BhY2UiPgogIDxwYXRoIGQ9Ik01MCw1MCBMNzUwLDUwIE01MCwxMDAgTDc1MCwxMDAgTTIwMCw1MCBMMjAwLDQwMCIgc3Ryb2tlPSIjMDZiNmQ0IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjMwMCIgeT0iMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjQiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjI3NSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBmMTcyYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QkFTRTY0IERFVEVDVEFETzwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjMxMCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UGVnYSB0dSBjw7NkaWdvIEJhc2U2NCBlbiBlbCBKU09OPC90ZXh0Pgo8L3N2Zz4="
+        };
 
         // ==========================================
         // PANTALLA DE LOGIN (SOLO MECÁNICOS)
@@ -112,7 +125,6 @@
             const handleLogin = (e) => {
                 e.preventDefault();
                 setLoading(true);
-                // Simulación de Login (o aquí va Firebase si lo habilitas)
                 setTimeout(() => onLoginSuccess(), 1000);
             };
 
@@ -144,11 +156,11 @@
         };
 
         // ==========================================
-        // ESTACIÓN DE MANDO (CHAT 40% + DIAGRAMA 60%)
+        // ESTACIÓN DE MANDO 2-WAY (Chat + Diagrama Base64)
         // ==========================================
         const CommandStation = ({ onLogout }) => {
             const [messages, setMessages] = useState([
-                { role: 'ai', content: 'Enlace establecido. **Ingeniero Jefe PITS** en línea.\nTengo acceso a manuales ALLDATA, torques, diagramas eléctricos y sincronización de tiempo.\n\nIndícame el modelo y el diagrama que necesitas.' }
+                { role: 'ai', content: 'Enlace establecido. **Ingeniero Jefe PITS** en línea.\nTengo acceso a manuales ALLDATA y esquemas eléctricos encriptados en Base64.\n\nEscribe "Diagrama de tiempo", "Diagrama eléctrico" o cualquier otra consulta para extraer el plano.' }
             ]);
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
@@ -167,11 +179,21 @@
                 setMessages(prev => [...prev, { role: 'user', content: userText }]);
                 setInput('');
                 setIsLoading(true);
-
-                // Iniciando radar de carga en el monitor derecho
                 setDiagramUrl('loading');
 
+                // 💡 INTERCEPTOR CUÁNTICO FRONTEND (Base64)
+                // Escaneamos lo que pide el usuario para cargar el código Base64 directamente
+                let forcedBase64 = DIAGRAM_DATABASE_B64.default;
+                const textLower = userText.toLowerCase();
+                
+                if (textLower.match(/tiempo|distribucion|cadena|timing/)) {
+                    forcedBase64 = DIAGRAM_DATABASE_B64.tiempo;
+                } else if (textLower.match(/electrico|ecu|cableado|wiring|pinout/)) {
+                    forcedBase64 = DIAGRAM_DATABASE_B64.electrico;
+                }
+
                 try {
+                    // Enviamos la petición de texto al backend de Heroku para obtener la explicación mecánica
                     const response = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -184,31 +206,19 @@
                     if (!response.ok) throw new Error('Error de red');
                     
                     const data = await response.json();
-                    let aiText = data.response || "Error de decodificación.";
-
-                    // ==========================================
-                    // 💡 EL INTERCEPTOR CUÁNTICO FRONTEND
-                    // Busca la etiqueta enviada por tu `main.py`
-                    // ==========================================
-                    const diagramRegex = /\[DIAGRAMA:\s*(.*?)\]/i;
-                    const match = aiText.match(diagramRegex);
                     
-                    if (match && match[1]) {
-                        // 1. Establecemos la imagen en el monitor derecho
-                        setDiagramUrl(match[1].trim());
-                        // 2. Borramos la etiqueta del texto para que el chat quede limpio
-                        aiText = aiText.replace(diagramRegex, '').trim(); 
-                    } else {
-                        // Si la IA no mandó la etiqueta, limpiamos el monitor o lo dejamos vacío
-                        if(diagramUrl === 'loading') setDiagramUrl('');
-                    }
+                    // Limpiamos cualquier imagen o etiqueta basura que la IA pueda enviar
+                    let aiText = data.response || "Error de decodificación.";
+                    aiText = aiText.replace(/!\[.*?\]\(.*?\)/g, ''); // Elimina imágenes Markdown
+                    aiText = aiText.replace(/\[DIAGRAMA:.*?\]/g, ''); // Elimina etiquetas viejas
 
-                    // Actualizamos el chat con la respuesta limpia
-                    setMessages(prev => [...prev, { role: 'ai', content: aiText }]);
+                    // Actualizamos el chat y el monitor de diagramas
+                    setMessages(prev => [...prev, { role: 'ai', content: aiText.trim() }]);
+                    setDiagramUrl(forcedBase64); 
 
                 } catch (error) {
                     setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Conexión perdida con el servidor central." }]);
-                    setDiagramUrl(''); 
+                    setDiagramUrl(forcedBase64); // Mostramos el plano local aunque no haya internet
                 } finally {
                     setIsLoading(false);
                 }
@@ -223,13 +233,12 @@
                             <button className="absolute top-6 right-6 text-slate-400 hover:text-white bg-pits-panel border border-slate-700 p-3 rounded-full transition z-50">
                                 <i className="ph-bold ph-x text-xl"></i>
                             </button>
-                            {/* El fondo del lightbox es blanco roto para simular papel impreso */}
-                            <img src={lightboxImg} alt="Plano Ampliado" className="max-w-full max-h-[90vh] object-contain rounded border-4 border-white shadow-[0_0_50px_rgba(6,182,212,0.15)] bg-slate-50 p-2" onClick={(e) => e.stopPropagation()} />
+                            <img src={lightboxImg} alt="Plano Ampliado" className="max-w-full max-h-[90vh] object-contain rounded border-4 border-white shadow-[0_0_50px_rgba(6,182,212,0.15)] bg-white p-2" onClick={(e) => e.stopPropagation()} />
                         </div>
                     )}
 
                     {/* HEADER TÁCTICO */}
-                    <header className="glass-panel border-b-0 border-pits-border p-3 flex items-center justify-between shrink-0">
+                    <header className="glass-panel border-b-0 p-3 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-xl bg-pits-cyan/10 border border-pits-cyan/50 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.2)]">
                                 <i className="ph-fill ph-blueprint text-pits-cyan text-xl"></i>
@@ -238,12 +247,12 @@
                                 <h1 className="font-display font-bold text-lg leading-none uppercase tracking-widest text-white mb-1">Infiniti Pits</h1>
                                 <div className="flex items-center gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-pits-cyan animate-pulse"></span>
-                                    <span className="text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Professional Terminal</span>
+                                    <span className="text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Base64 Local Storage</span>
                                 </div>
                             </div>
                         </div>
-                        <button onClick={onLogout} className="px-4 py-2 rounded-lg bg-pits-panel border border-pits-border text-gray-400 hover:text-white hover:border-pits-primary transition flex items-center gap-2 font-mono text-xs uppercase tracking-widest">
-                            <span className="hidden sm:inline">Desconectar</span> <i className="ph-bold ph-sign-out text-lg"></i>
+                        <button onClick={onLogout} className="px-4 py-2 rounded-lg bg-pits-panel border border-pits-border text-gray-400 hover:text-white hover:border-pits-primary transition font-mono text-xs uppercase tracking-widest">
+                            <i className="ph-bold ph-sign-out text-lg"></i>
                         </button>
                     </header>
 
@@ -252,8 +261,9 @@
                         
                         {/* 1. EL CHAT (Izquierda) */}
                         <div className="w-full lg:w-[40%] flex flex-col glass-panel rounded-2xl border border-pits-border shadow-2xl overflow-hidden shrink-0 h-[50vh] lg:h-full">
-                            <div className="bg-pits-panel/80 p-3 border-b border-pits-border flex justify-between items-center shrink-0">
-                                <span className="font-mono text-[10px] text-gray-400 tracking-widest uppercase flex items-center gap-2"><i className="ph-fill ph-terminal-window text-pits-cyan"></i> Asistente de Taller</span>
+                            <div className="bg-pits-panel/80 p-3 border-b border-pits-border flex items-center gap-2 shrink-0">
+                                <i className="ph-fill ph-terminal-window text-pits-cyan"></i>
+                                <span className="font-mono text-[10px] text-gray-400 tracking-widest uppercase">Chat Técnico</span>
                             </div>
                             
                             <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
@@ -277,7 +287,7 @@
                                             <div className="w-8 h-8 rounded-xl bg-pits-cyan/10 border border-pits-cyan/30 flex items-center justify-center text-pits-cyan mt-1"><i className="ph-fill ph-robot"></i></div>
                                             <div className="p-4 rounded-2xl rounded-tl-none bg-black/60 border border-pits-cyan/20 flex items-center gap-3">
                                                 <i className="ph-bold ph-circle-notch animate-spin text-pits-cyan text-lg"></i>
-                                                <span className="text-xs text-gray-400 font-mono tracking-widest uppercase">Analizando Parámetros...</span>
+                                                <span className="text-xs text-gray-400 font-mono tracking-widest uppercase">Consultando ALLDATA...</span>
                                             </div>
                                         </div>
                                     </div>
@@ -287,30 +297,27 @@
 
                             <div className="p-3 md:p-4 bg-pits-panel border-t border-pits-border shrink-0">
                                 <div className="relative flex gap-2">
-                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Pide un diagrama, torque o código DTC..." className="w-full bg-pits-dark border border-pits-border rounded-xl px-4 py-4 text-sm text-white focus:outline-none focus:border-pits-cyan transition font-mono placeholder:text-slate-600" disabled={isLoading} autoComplete="off" />
-                                    <button onClick={handleSend} disabled={!input.trim() || isLoading} className="w-14 bg-pits-cyan text-pits-dark rounded-xl flex items-center justify-center hover:bg-cyan-400 transition disabled:opacity-50 shadow-[0_0_15px_rgba(6,182,212,0.3)] shrink-0"><i className="ph-bold ph-paper-plane-right text-xl"></i></button>
+                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Escribe el vehículo y pieza..." className="w-full bg-pits-dark border border-pits-border rounded-xl px-4 py-4 text-sm text-white focus:outline-none focus:border-pits-cyan transition font-mono" disabled={isLoading} autoComplete="off" />
+                                    <button onClick={handleSend} disabled={!input.trim() || isLoading} className="w-14 bg-pits-cyan text-pits-dark rounded-xl flex items-center justify-center hover:bg-cyan-400 transition disabled:opacity-50 shrink-0"><i className="ph-bold ph-paper-plane-right text-xl"></i></button>
                                 </div>
                             </div>
                         </div>
 
                         {/* 2. EL MONITOR DE DIAGRAMAS (Derecha) */}
                         <div className="w-full lg:w-[60%] flex flex-col h-[50vh] lg:h-full shrink-0">
-                            
-                            <div className="flex-1 glass-panel rounded-2xl border border-pits-cyan/30 flex flex-col overflow-hidden relative shadow-[0_0_30px_rgba(6,182,212,0.05)]">
+                            <div className="flex-1 glass-panel rounded-2xl border border-pits-cyan/40 flex flex-col overflow-hidden relative shadow-[0_0_30px_rgba(6,182,212,0.05)]">
                                 
                                 <div className="bg-pits-panel p-3 border-b border-pits-border flex justify-between items-center z-10 shrink-0">
                                     <div className="flex items-center gap-3">
                                         <i className="ph-fill ph-file-text text-pits-cyan text-lg"></i>
-                                        <span className="font-mono text-[10px] text-pits-cyan tracking-widest uppercase font-bold">Monitor de Mapas y Diagramas</span>
+                                        <span className="font-mono text-[10px] text-pits-cyan tracking-widest uppercase font-bold">Monitor Base64 Render</span>
                                     </div>
                                     <button onClick={() => { if(diagramUrl && diagramUrl !== 'loading') setLightboxImg(diagramUrl); }} className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white font-mono px-3 py-1.5 rounded transition flex items-center gap-2 uppercase tracking-widest" disabled={!diagramUrl || diagramUrl === 'loading'}>
                                         <i className="ph-bold ph-arrows-out-simple"></i> Ampliar
                                     </button>
                                 </div>
                                 
-                                {/* Contenedor visual del diagrama */}
                                 <div className="flex-1 relative diagram-bg flex items-center justify-center overflow-hidden p-4">
-                                    
                                     {diagramUrl === '' && (
                                         <div className="text-center text-slate-500 font-mono flex flex-col items-center">
                                             <div className="w-20 h-20 border-2 border-dashed border-slate-600 rounded-full flex items-center justify-center mb-4">
@@ -325,7 +332,7 @@
                                             <div className="absolute inset-0 hud-scanline"></div>
                                             <div className="text-pits-cyan font-mono text-xs flex flex-col items-center z-10">
                                                 <i className="ph-bold ph-scan animate-spin text-4xl mb-4"></i>
-                                                <span className="animate-pulse tracking-[0.2em] bg-pits-dark/80 px-4 py-2 rounded">Extrayendo Plano Técnico...</span>
+                                                <span className="animate-pulse tracking-[0.2em] bg-pits-dark/80 px-4 py-2 rounded">Cargando Base64 Data...</span>
                                             </div>
                                         </>
                                     )}
@@ -340,8 +347,8 @@
                                     )}
                                 </div>
                             </div>
-
                         </div>
+
                     </div>
                 </div>
             );
