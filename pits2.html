@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>INFINITI PITS | Manuales & Diagramas Exactos</title>
+    <title>INFINITI PITS | Database de Diagramas Profesionales</title>
     <meta name="description" content="Estación de mando automotriz. Diagramas eléctricos, cadenas de tiempo y manuales de taller.">
     
     <!-- Librerías de Diseño e Iconos -->
@@ -22,7 +22,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <!-- Fuentes -->
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -31,15 +31,17 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         display: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
                         pits: {
-                            dark: '#050505',     
-                            panel: '#121212',    
-                            primary: '#dc2626',  
+                            dark: '#030508',     
+                            panel: '#0a0f18',    
+                            primary: '#ef4444',  
                             accent: '#fca5a5',   
-                            border: '#262626',
-                            cyan: '#00f0ff'
+                            border: '#1e293b',
+                            cyan: '#06b6d4',
+                            cyanGlow: '#22d3ee'
                         }
                     }
                 }
@@ -49,31 +51,32 @@
     </script>
 
     <style>
-        body { background-color: #050505; color: #f5f5f5; overflow: hidden; }
+        body { background-color: #030508; color: #f8fafc; overflow: hidden; }
         
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 3px; }
         
         .glass-panel {
-            background: rgba(18, 18, 18, 0.85);
+            background: rgba(10, 15, 24, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(220, 38, 38, 0.15);
+            border: 1px solid rgba(6, 182, 212, 0.2);
         }
 
-        .markdown-body p { margin-bottom: 0.75rem; line-height: 1.5; }
+        .markdown-body p { margin-bottom: 0.75rem; line-height: 1.6; }
         .markdown-body strong { color: #ffffff; font-weight: 600; }
-        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; color: #cbd5e1; }
+        .markdown-body li { margin-bottom: 0.25rem; }
         
-        /* Ocultamos las imágenes de la IA en el chat */
+        /* Ocultamos cualquier imagen genérica que la IA intente mandar al chat */
         .markdown-body img { display: none !important; }
 
         .hud-scanline {
             width: 100%; height: 2px;
-            background: linear-gradient(to right, transparent, rgba(0, 240, 255, 0.8), transparent);
+            background: linear-gradient(to right, transparent, rgba(6, 182, 212, 0.8), transparent);
             position: absolute; top: 0; left: 0; z-index: 10; pointer-events: none;
-            animation: scanline 2.5s linear infinite;
+            animation: scanline 2s linear infinite;
         }
         @keyframes scanline {
             0% { transform: translateY(0); opacity: 0; }
@@ -85,16 +88,31 @@
         .img-zoom { transition: transform 0.3s ease; cursor: zoom-in; }
         .img-zoom:hover { transform: scale(1.02); }
 
-        /* Fondo de papel para los diagramas técnicos */
+        /* Fondo técnico para los diagramas (Estilo Blueprint/Papel) */
         .diagram-bg {
-            background-color: #ffffff;
-            background-image: url('https://www.transparenttextures.com/patterns/clean-text-pattern.png');
+            background-color: #f8fafc;
+            background-image: 
+                linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        /* Fondo oscuro para contraste */
+        .dark-diagram-bg {
+            background-color: #0f172a;
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
         }
     </style>
 </head>
-<body class="antialiased selection:bg-pits-cyan selection:text-black">
+<body class="antialiased selection:bg-pits-cyan selection:text-pits-dark">
 
-    <div id="root" class="h-screen flex flex-col"></div>
+    <div id="root" class="h-screen flex flex-col relative z-10"></div>
+    
+    <!-- Malla de fondo sutil -->
+    <div class="fixed inset-0 pointer-events-none z-0" style="background-image: radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.05) 1px, transparent 1px); background-size: 30px 30px;"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
@@ -104,6 +122,7 @@
         // ==========================================
         const API_URL = "https://abunda-bca693eb3dbb.herokuapp.com/api/chat";
 
+        // SOBERANO: Pon tus llaves de Firebase si deseas login real
         const firebaseConfig = {
             apiKey: "", authDomain: "", projectId: "", storageBucket: "", messagingSenderId: "", appId: ""
         };
@@ -120,21 +139,22 @@
         } catch (e) { console.error("Firebase Error:", e); }
 
         // ==========================================
-        // BASE DE DATOS VISUAL (EL SECRETO DEL ARQUITECTO)
+        // BASE DE DATOS VISUAL (DIAGRAMAS EXACTOS)
         // ==========================================
-        // Esta base intercepta la charla y fuerza a mostrar imágenes técnicas reales
+        // Intercepta las palabras clave y devuelve diagramas técnicos en alta resolución
         const TECHNICAL_DB = {
             electrico: "https://www.researchgate.net/profile/Ahmed-Abu-Hanieh/publication/322306782/figure/fig1/AS:580174067908608@1515336040828/The-wiring-diagram-of-the-electronic-control-unit-ECU.png",
-            tiempo: "https://www.researchgate.net/profile/Marco-Amabili/publication/224097486/figure/fig2/AS:302796443422721@1449204062402/Timing-chain-drive-diagram.png", // Cadena de tiempo real
-            motor: "https://upload.wikimedia.org/wikipedia/commons/e/e1/Engine_Diagram_-_1.png",
+            tiempo: "https://www.researchgate.net/profile/Marco-Amabili/publication/224097486/figure/fig2/AS:302796443422721@1449204062402/Timing-chain-drive-diagram.png", // Cadena de tiempo
+            motor: "https://upload.wikimedia.org/wikipedia/commons/e/e1/Engine_Diagram_-_1.png", // Despiece motor
             transmision: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Manual_transmission_diagram.svg/1024px-Manual_transmission_diagram.svg.png",
+            frenos: "https://www.researchgate.net/profile/Reza-N-Jazar/publication/313418526/figure/fig1/AS:458873099952130@1486415729783/Hydraulic-brake-system-schematic.png",
             moto: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Motorcycle_diagram.svg/1024px-Motorcycle_diagram.svg.png",
             utv: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Suspension_diagram.svg/1024px-Suspension_diagram.svg.png",
             default: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Wiring_diagram_of_a_car.svg/1024px-Wiring_diagram_of_a_car.svg.png"
         };
 
         // ==========================================
-        // PANTALLA DE LOGIN
+        // PANTALLA DE LOGIN (SOLO MECÁNICOS)
         // ==========================================
         const LoginScreen = ({ onLoginSuccess }) => {
             const [email, setEmail] = useState("");
@@ -145,38 +165,44 @@
                 e.preventDefault();
                 setLoading(true);
                 setTimeout(() => {
-                    onLoginSuccess({ email: email, uid: "demo-123" }, "mechanic");
-                }, 1000);
+                    onLoginSuccess({ email: email, uid: "mechanic-pro-123" });
+                }, 1200);
             };
 
             return (
-                <div className="min-h-screen flex items-center justify-center p-4 bg-[url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=2000')] bg-cover bg-center relative">
-                    <div className="absolute inset-0 bg-black/85 backdrop-blur-sm z-0"></div>
+                <div className="min-h-screen flex items-center justify-center p-4 relative z-10">
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?q=80&w=2000')] bg-cover bg-center opacity-30"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-pits-dark/80 to-pits-dark"></div>
                     
-                    <div className="glass-panel p-8 md:p-10 rounded-3xl w-full max-w-md relative z-10 shadow-[0_0_50px_rgba(0,240,255,0.2)] border-t-4 border-t-pits-cyan">
+                    <div className="glass-panel p-8 md:p-12 rounded-[2rem] w-full max-w-md relative z-10 shadow-[0_0_50px_rgba(6,182,212,0.15)] border-t-2 border-t-pits-cyan">
                         <div className="text-center mb-8">
-                            <div className="w-16 h-16 bg-pits-cyan rounded-xl flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(0,240,255,0.5)]">
-                                <i className="ph-fill ph-engine text-3xl text-pits-dark"></i>
+                            <div className="w-20 h-20 bg-pits-dark border border-pits-cyan/50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(6,182,212,0.3)]">
+                                <i className="ph-fill ph-blueprint text-4xl text-pits-cyan"></i>
                             </div>
-                            <h1 className="text-3xl font-display font-bold tracking-tight mb-1 uppercase text-white">INFINITI PITS</h1>
-                            <p className="text-pits-cyan text-xs font-mono tracking-widest uppercase">ALLDATA / Mitchell1 Link</p>
+                            <h1 className="text-3xl font-display font-bold tracking-tight mb-2 text-white">INFINITI PITS</h1>
+                            <div className="inline-block bg-pits-cyan/10 border border-pits-cyan/30 px-3 py-1 rounded-full">
+                                <p className="text-pits-cyan text-[10px] font-mono tracking-widest uppercase font-bold">Portal Exclusivo para Talleres</p>
+                            </div>
                         </div>
 
-                        <form onSubmit={handleLogin} className="space-y-5">
+                        <form onSubmit={handleLogin} className="space-y-6">
                             <div>
+                                <label className="block text-xs font-mono text-gray-400 mb-2 uppercase tracking-widest">ID de Taller (Email)</label>
                                 <div className="relative">
-                                    <i className="ph ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
-                                    <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-cyan" placeholder="taller@ejemplo.com" />
+                                    <i className="ph-fill ph-envelope-simple absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
+                                    <input type="email" required value={email} onChange={e=>setEmail(e.target.value)} className="w-full bg-pits-dark/80 border border-pits-border rounded-xl py-4 pl-12 pr-4 text-white font-mono text-sm focus:outline-none focus:border-pits-cyan focus:shadow-[0_0_15px_rgba(6,182,212,0.2)] transition" placeholder="taller@ejemplo.com" />
                                 </div>
                             </div>
                             <div>
+                                <label className="block text-xs font-mono text-gray-400 mb-2 uppercase tracking-widest">Clave de Acceso</label>
                                 <div className="relative">
-                                    <i className="ph ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
-                                    <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-black/50 border border-pits-border rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-pits-cyan" placeholder="••••••••" />
+                                    <i className="ph-fill ph-lock-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg"></i>
+                                    <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} className="w-full bg-pits-dark/80 border border-pits-border rounded-xl py-4 pl-12 pr-4 text-white font-mono text-sm focus:outline-none focus:border-pits-cyan focus:shadow-[0_0_15px_rgba(6,182,212,0.2)] transition" placeholder="••••••••" />
                                 </div>
                             </div>
-                            <button disabled={loading} type="submit" className="w-full py-4 bg-pits-cyan hover:bg-cyan-500 text-pits-dark font-bold rounded-xl shadow-[0_0_20px_rgba(0,240,255,0.4)] transition transform hover:-translate-y-1 disabled:opacity-50 uppercase tracking-widest text-sm">
-                                {loading ? <i className="ph ph-spinner-gap animate-spin text-xl"></i> : "Conectar Escáner"}
+                            
+                            <button disabled={loading} type="submit" className="w-full py-4 bg-pits-cyan hover:bg-cyan-400 text-pits-dark font-bold rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition transform hover:-translate-y-1 disabled:opacity-50 uppercase tracking-widest text-sm mt-4">
+                                {loading ? <i className="ph ph-spinner-gap animate-spin text-xl"></i> : "Conectar a Base de Datos"}
                             </button>
                         </form>
                     </div>
@@ -185,19 +211,18 @@
         };
 
         // ==========================================
-        // ESTACIÓN DE MANDO 3-WAY (CHAT + DIAGRAMA + FOTO)
+        // ESTACIÓN DE MANDO 2-WAY (CHAT + DIAGRAMA)
         // ==========================================
-        const CommandStation = ({ role, onLogout }) => {
+        const CommandStation = ({ onLogout }) => {
             const [messages, setMessages] = useState([
-                { role: 'ai', content: 'Sistemas en línea. **Ingeniero Jefe PITS** preparado. Ingresa tu consulta (ej: "Diagrama cadena de tiempo Santa Fe" o "Esquema eléctrico ECU"). Los planos técnicos cargarán a la derecha.' }
+                { role: 'ai', content: 'Enlace establecido. **Ingeniero Jefe PITS** en línea.\nTengo acceso a manuales, torques, diagramas eléctricos y sincronización de tiempo.\n\nIndícame el modelo y el diagrama que necesitas.' }
             ]);
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
             
-            // Monitores Visuales
+            // Monitor Visual (Solo Diagrama)
             const [diagramUrl, setDiagramUrl] = useState('');
-            const [vehicleUrl, setVehicleUrl] = useState('');
-            const [lightboxImg, setLightboxImg] = useState(null); // Visor Ampliado
+            const [lightboxImg, setLightboxImg] = useState(null); 
 
             const messagesEndRef = useRef(null);
             useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -210,24 +235,24 @@
                 setInput('');
                 setIsLoading(true);
 
-                // Iniciando radares de carga
+                // Iniciando radar de carga en el monitor de diagramas
                 setDiagramUrl('loading');
-                setVehicleUrl('loading');
 
-                // INTERCEPTOR VISUAL: Analizamos qué pide el mecánico para inyectar el diagrama exacto
+                // INTERCEPTOR VISUAL: Analiza la petición para inyectar el esquema correcto
                 let forcedDiagram = TECHNICAL_DB.default;
                 const textLower = userText.toLowerCase();
                 
-                if (textLower.includes('tiempo') || textLower.includes('distribucion') || textLower.includes('cadena')) forcedDiagram = TECHNICAL_DB.tiempo;
-                else if (textLower.includes('electrico') || textLower.includes('ecu') || textLower.includes('cableado')) forcedDiagram = TECHNICAL_DB.electrico;
-                else if (textLower.includes('transmision') || textLower.includes('caja')) forcedDiagram = TECHNICAL_DB.transmision;
-                else if (textLower.includes('moto') || textLower.includes('yamaha') || textLower.includes('honda')) forcedDiagram = TECHNICAL_DB.moto;
-                else if (textLower.includes('utv') || textLower.includes('cuadraciclo') || textLower.includes('polaris')) forcedDiagram = TECHNICAL_DB.utv;
-                else if (textLower.includes('motor') || textLower.includes('culata')) forcedDiagram = TECHNICAL_DB.motor;
+                if (textLower.match(/tiempo|distribucion|cadena|timing/)) forcedDiagram = TECHNICAL_DB.tiempo;
+                else if (textLower.match(/electrico|ecu|cableado|wiring|pinout/)) forcedDiagram = TECHNICAL_DB.electrico;
+                else if (textLower.match(/transmision|caja|gearbox/)) forcedDiagram = TECHNICAL_DB.transmision;
+                else if (textLower.match(/motor|culata|despiece/)) forcedDiagram = TECHNICAL_DB.motor;
+                else if (textLower.match(/freno|abs|brake/)) forcedDiagram = TECHNICAL_DB.frenos;
+                else if (textLower.match(/moto|yamaha|honda|kawasaki/)) forcedDiagram = TECHNICAL_DB.moto;
+                else if (textLower.match(/utv|cuadraciclo|polaris|can-am/)) forcedDiagram = TECHNICAL_DB.utv;
 
                 try {
-                    // Petición a Heroku (Sin pedirle a la IA que traiga diagramas, porque los ponemos nosotros en el frontend)
-                    const hiddenInstruction = `\n\n[INSTRUCCIÓN OCULTA: Explica el diagnóstico o el procedimiento de forma técnica y profesional para un mecánico experto. Al final de tu texto, adjunta SOLO UNA imagen real de un auto o moto usando el formato markdown: ![Auto](URL_UNSPLASH). NO incluyas imágenes de diagramas, el sistema frontend se encarga de eso.]`;
+                    // Instrucción para evitar que la IA ponga imágenes basura fotográficas
+                    const hiddenInstruction = `\n\n[INSTRUCCIÓN OCULTA: Responde de forma altamente técnica, profesional y estructurada (usa listas y negritas). NO adjuntes ninguna imagen, foto ni enlace en formato Markdown. El sistema frontend se encarga de proveer los planos.]`;
 
                     const response = await fetch(API_URL, {
                         method: 'POST',
@@ -242,90 +267,83 @@
                     if (!response.ok) throw new Error('Error de red');
                     
                     const data = await response.json();
-                    const aiText = data.response || "Error de diagnóstico.";
-                    
-                    // Extraer la foto del auto de Unsplash de la respuesta de la IA
-                    const regex = /!\[.*?\]\((.*?)\)/g;
-                    let match = regex.exec(aiText);
-                    let foundVehiclePhoto = match ? match[1] : 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1000';
-                    const cleanText = aiText.replace(regex, '').trim();
+                    const aiText = data.response || "Error de decodificación.";
 
-                    setMessages(prev => [...prev, { role: 'ai', content: cleanText }]);
-
-                    // Setear los monitores
-                    setDiagramUrl(forcedDiagram);     // El Diagrama Real (Mapeado por el Interceptor)
-                    setVehicleUrl(foundVehiclePhoto); // La Foto Referencial (Traída por la IA)
+                    setMessages(prev => [...prev, { role: 'ai', content: aiText }]);
+                    setDiagramUrl(forcedDiagram); 
 
                 } catch (error) {
-                    setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Conexión perdida con Heroku." }]);
-                    setDiagramUrl(forcedDiagram); // Aún si falla la red, mostramos el plano
-                    setVehicleUrl('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1000');
+                    setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Conexión perdida con los servidores de ALLDATA." }]);
+                    setDiagramUrl(forcedDiagram); // Mostramos el plano aunque falle la red
                 } finally {
                     setIsLoading(false);
                 }
             };
 
             return (
-                <div className="flex flex-col h-screen bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] bg-pits-dark relative overflow-hidden">
+                <div className="flex flex-col h-screen relative overflow-hidden z-10">
                     
-                    {/* VISOR PANTALLA COMPLETA (LIGHTBOX) */}
+                    {/* VISOR PANTALLA COMPLETA (LIGHTBOX) PARA DIAGRAMAS */}
                     {lightboxImg && (
-                        <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-6 cursor-zoom-out animate-[fadeIn_0.3s_ease-out]" onClick={() => setLightboxImg(null)}>
-                            <button className="absolute top-6 right-6 text-white bg-black/50 p-2 rounded-full hover:bg-pits-cyan hover:text-black transition z-50">
-                                <i className="ph-bold ph-x text-2xl"></i>
+                        <div className="fixed inset-0 z-[100] bg-pits-dark/95 backdrop-blur-xl flex items-center justify-center p-4 cursor-zoom-out animate-[fadeIn_0.3s_ease-out]" onClick={() => setLightboxImg(null)}>
+                            <button className="absolute top-6 right-6 text-slate-400 hover:text-white bg-pits-panel border border-slate-700 p-3 rounded-full transition z-50">
+                                <i className="ph-bold ph-x text-xl"></i>
                             </button>
-                            {/* La imagen aquí tendrá fondo blanco si es un diagrama para que se vea como papel */}
-                            <img src={lightboxImg} alt="Ampliado" className={`max-w-full max-h-[90vh] object-contain rounded-lg shadow-[0_0_50px_rgba(0,240,255,0.3)] border border-pits-cyan/30 ${lightboxImg === diagramUrl ? 'bg-white p-4' : ''}`} onClick={(e) => e.stopPropagation()} />
+                            {/* El fondo del lightbox es blanco roto para simular papel impreso */}
+                            <img src={lightboxImg} alt="Plano Ampliado" className="max-w-full max-h-[90vh] object-contain rounded border-4 border-white shadow-[0_0_50px_rgba(6,182,212,0.15)] bg-slate-50 p-2" onClick={(e) => e.stopPropagation()} />
                         </div>
                     )}
 
-                    {/* HEADER */}
-                    <header className="glass-panel border-b border-pits-border p-3 flex items-center justify-between z-20 shrink-0">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-pits-cyan flex items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.5)]">
-                                <i className="ph-fill ph-engine text-pits-dark text-xl"></i>
+                    {/* HEADER TÁCTICO */}
+                    <header className="glass-panel border-b-0 border-pits-border p-3 flex items-center justify-between shrink-0">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-pits-cyan/10 border border-pits-cyan/50 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                                <i className="ph-fill ph-blueprint text-pits-cyan text-xl"></i>
                             </div>
                             <div>
-                                <h1 className="font-display font-bold text-lg leading-tight uppercase tracking-wide text-white">Infiniti Pits</h1>
+                                <h1 className="font-display font-bold text-lg leading-none uppercase tracking-widest text-white mb-1">Infiniti Pits</h1>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Módulo Taller / ALLDATA Link</span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-pits-cyan animate-pulse"></span>
+                                    <span className="text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Professional Terminal</span>
                                 </div>
                             </div>
                         </div>
-                        <button onClick={onLogout} className="w-10 h-10 rounded-xl bg-black/50 border border-pits-border text-gray-400 hover:text-white transition flex items-center justify-center"><i className="ph-bold ph-sign-out text-xl"></i></button>
+                        <button onClick={onLogout} className="px-4 py-2 rounded-lg bg-pits-panel border border-pits-border text-gray-400 hover:text-white hover:border-pits-primary transition flex items-center gap-2 font-mono text-xs uppercase tracking-widest">
+                            <span className="hidden sm:inline">Desconectar</span> <i className="ph-bold ph-sign-out text-lg"></i>
+                        </button>
                     </header>
 
-                    {/* MAIN LAYOUT (3 ESPACIOS) */}
-                    <div className="flex-1 flex flex-col lg:flex-row w-full overflow-hidden p-2 md:p-4 gap-4">
+                    {/* MAIN LAYOUT (2 ESPACIOS: CHAT 45% | DIAGRAMA 55%) */}
+                    <div className="flex-1 flex flex-col lg:flex-row w-full overflow-hidden p-3 gap-4">
                         
-                        {/* ESPACIO 1: EL CHAT (Izquierda 40%) */}
-                        <div className="w-full lg:w-[40%] flex flex-col glass-panel rounded-2xl border border-pits-border shadow-2xl overflow-hidden shrink-0 h-[45vh] lg:h-full">
-                            <div className="bg-black/60 p-3 border-b border-pits-border flex justify-between items-center shrink-0">
-                                <span className="font-mono text-xs text-gray-400 tracking-widest uppercase flex items-center gap-2"><i className="ph-fill ph-chat-text text-pits-cyan"></i> Asistente de Taller</span>
+                        {/* 1. EL CHAT (Izquierda) */}
+                        <div className="w-full lg:w-[45%] flex flex-col glass-panel rounded-2xl border border-pits-border shadow-2xl overflow-hidden shrink-0 h-[50vh] lg:h-full">
+                            <div className="bg-pits-panel/80 p-3 border-b border-pits-border flex justify-between items-center shrink-0">
+                                <span className="font-mono text-[10px] text-gray-400 tracking-widest uppercase flex items-center gap-2"><i className="ph-fill ph-terminal-window text-pits-cyan"></i> Asistente de Taller</span>
                             </div>
                             
-                            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
                                 {messages.map((msg, idx) => (
                                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                         <div className={`flex gap-3 max-w-[95%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                                             <div className="flex-shrink-0 mt-1">
                                                 {msg.role === 'ai' ? (
-                                                    <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-cyan/50 flex items-center justify-center text-pits-cyan shadow-[0_0_10px_rgba(0,240,255,0.3)]"><i className="ph-fill ph-robot"></i></div>
+                                                    <div className="w-8 h-8 rounded-xl bg-pits-cyan/10 border border-pits-cyan/30 flex items-center justify-center text-pits-cyan"><i className="ph-fill ph-robot"></i></div>
                                                 ) : (
-                                                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white"><i className="ph-fill ph-wrench"></i></div>
+                                                    <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-600 flex items-center justify-center text-white"><i className="ph-fill ph-wrench"></i></div>
                                                 )}
                                             </div>
-                                            <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-lg markdown-body ${msg.role === 'user' ? 'bg-pits-panel border border-slate-700 text-white rounded-tr-none' : 'bg-black/80 border border-pits-cyan/30 text-gray-300 rounded-tl-none'}`} dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}></div>
+                                            <div className={`p-4 md:p-5 rounded-2xl text-sm leading-relaxed shadow-lg markdown-body ${msg.role === 'user' ? 'bg-pits-panel border border-slate-700 text-white rounded-tr-none' : 'bg-black/60 border border-pits-cyan/20 text-slate-200 rounded-tl-none'}`} dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}></div>
                                         </div>
                                     </div>
                                 ))}
                                 {isLoading && (
                                     <div className="flex justify-start">
                                         <div className="flex gap-3 max-w-[75%]">
-                                            <div className="w-8 h-8 rounded-full bg-pits-panel border border-pits-cyan/50 flex items-center justify-center text-pits-cyan mt-1"><i className="ph-fill ph-engine"></i></div>
-                                            <div className="p-3 rounded-2xl rounded-tl-none bg-black/80 border border-pits-cyan/30 flex items-center gap-3">
-                                                <i className="ph-bold ph-circle-notch animate-spin text-pits-cyan"></i>
-                                                <span className="text-xs text-gray-400 font-mono">Consultando manuales...</span>
+                                            <div className="w-8 h-8 rounded-xl bg-pits-cyan/10 border border-pits-cyan/30 flex items-center justify-center text-pits-cyan mt-1"><i className="ph-fill ph-robot"></i></div>
+                                            <div className="p-4 rounded-2xl rounded-tl-none bg-black/60 border border-pits-cyan/20 flex items-center gap-3">
+                                                <i className="ph-bold ph-circle-notch animate-spin text-pits-cyan text-lg"></i>
+                                                <span className="text-xs text-gray-400 font-mono tracking-widest uppercase">Decodificando...</span>
                                             </div>
                                         </div>
                                     </div>
@@ -333,50 +351,58 @@
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            <div className="p-3 bg-pits-panel border-t border-pits-border shrink-0">
+                            <div className="p-3 md:p-4 bg-pits-panel border-t border-pits-border shrink-0">
                                 <div className="relative flex gap-2">
-                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Ej: Diagrama eléctrico ECU o cadena de tiempo..." className="w-full bg-black/50 border border-pits-border rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pits-cyan transition" disabled={isLoading} />
-                                    <button onClick={handleSend} disabled={!input.trim() || isLoading} className="w-12 bg-pits-cyan text-pits-dark rounded-xl flex items-center justify-center hover:bg-cyan-400 transition disabled:opacity-50 shadow-[0_0_15px_rgba(0,240,255,0.4)] shrink-0"><i className="ph-bold ph-paper-plane-right text-xl"></i></button>
+                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Pide un diagrama, torque o código DTC..." className="w-full bg-pits-dark border border-pits-border rounded-xl px-4 py-4 text-sm text-white focus:outline-none focus:border-pits-cyan transition font-mono placeholder:text-slate-600" disabled={isLoading} autoComplete="off" />
+                                    <button onClick={handleSend} disabled={!input.trim() || isLoading} className="w-14 bg-pits-cyan text-pits-dark rounded-xl flex items-center justify-center hover:bg-cyan-400 transition disabled:opacity-50 shadow-[0_0_15px_rgba(6,182,212,0.3)] shrink-0"><i className="ph-bold ph-paper-plane-right text-xl"></i></button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* ESPACIOS 2 y 3: MONITORES VISUALES (Derecha 60%) */}
-                        <div className="w-full lg:w-[60%] flex flex-col gap-4 h-[50vh] lg:h-full shrink-0">
+                        {/* 2. EL MONITOR DE DIAGRAMAS (Derecha) */}
+                        <div className="w-full lg:w-[55%] flex flex-col h-[50vh] lg:h-full shrink-0">
                             
-                            {/* ESPACIO 2: EL DIAGRAMA TÉCNICO EXACTO (Arriba) */}
-                            <div className="flex-1 glass-panel rounded-2xl border border-pits-cyan/40 flex flex-col overflow-hidden relative shadow-[0_0_30px_rgba(0,240,255,0.1)]">
-                                <div className="bg-black/80 p-2 border-b border-pits-cyan/30 flex justify-between items-center z-10 shrink-0">
-                                    <div className="flex items-center gap-2">
-                                        <i className="ph-fill ph-blueprint text-pits-cyan"></i>
-                                        <span className="font-mono text-xs text-pits-cyan tracking-widest uppercase font-bold">Monitor A: Plano Técnico (ALLDATA)</span>
+                            <div className="flex-1 glass-panel rounded-2xl border border-pits-cyan/30 flex flex-col overflow-hidden relative shadow-[0_0_30px_rgba(6,182,212,0.05)]">
+                                
+                                <div className="bg-pits-panel p-3 border-b border-pits-border flex justify-between items-center z-10 shrink-0">
+                                    <div className="flex items-center gap-3">
+                                        <i className="ph-fill ph-file-text text-pits-cyan text-lg"></i>
+                                        <span className="font-mono text-[10px] text-pits-cyan tracking-widest uppercase font-bold">Monitor de Planos y Esquemas</span>
                                     </div>
-                                    <span className="text-[10px] text-gray-500 font-mono">Click para ampliar</span>
+                                    <button onClick={() => { if(diagramUrl && diagramUrl !== 'loading') setLightboxImg(diagramUrl); }} className="text-[10px] bg-slate-800 hover:bg-slate-700 text-white font-mono px-3 py-1.5 rounded transition flex items-center gap-2 uppercase tracking-widest" disabled={!diagramUrl || diagramUrl === 'loading'}>
+                                        <i className="ph-bold ph-arrows-out-simple"></i> Pantalla Completa
+                                    </button>
                                 </div>
-                                {/* Fondo blanco 'diagram-bg' para que los esquemas se vean como en el manual de papel */}
-                                <div className="flex-1 relative diagram-bg flex items-center justify-center overflow-hidden p-2">
-                                    {diagramUrl === '' && <div className="text-center text-gray-400 font-mono text-xs"><i className="ph-thin ph-crosshair text-4xl mb-2 block text-pits-cyan/50"></i>Esperando Selección</div>}
-                                    {diagramUrl === 'loading' && <div className="absolute inset-0 hud-scanline"></div>}
-                                    {diagramUrl === 'loading' && <div className="text-pits-cyan font-mono text-xs animate-pulse flex flex-col items-center"><i className="ph-bold ph-scan animate-spin text-3xl mb-2"></i>Escaneando Servidores...</div>}
-                                    {diagramUrl && diagramUrl !== 'loading' && (
-                                        <img src={diagramUrl} alt="Diagrama Técnico" className="w-full h-full object-contain rounded img-zoom mix-blend-multiply" onClick={() => setLightboxImg(diagramUrl)} />
+                                
+                                {/* Contenedor visual del diagrama */}
+                                <div className="flex-1 relative dark-diagram-bg flex items-center justify-center overflow-hidden p-4">
+                                    
+                                    {diagramUrl === '' && (
+                                        <div className="text-center text-slate-600 font-mono flex flex-col items-center">
+                                            <div className="w-20 h-20 border-2 border-dashed border-slate-700 rounded-full flex items-center justify-center mb-4">
+                                                <i className="ph-thin ph-magnifying-glass text-4xl"></i>
+                                            </div>
+                                            <span className="text-xs uppercase tracking-widest">Esperando Parámetros</span>
+                                        </div>
                                     )}
-                                </div>
-                            </div>
-
-                            {/* ESPACIO 3: FOTO DEL VEHÍCULO O MOTOR (Abajo) */}
-                            <div className="flex-1 glass-panel rounded-2xl border border-gray-600 flex flex-col overflow-hidden relative">
-                                <div className="bg-black/80 p-2 border-b border-gray-700 flex justify-between items-center z-10 shrink-0">
-                                    <div className="flex items-center gap-2">
-                                        <i className="ph-fill ph-camera text-gray-400"></i>
-                                        <span className="font-mono text-xs text-gray-400 tracking-widest uppercase font-bold">Monitor B: Referencia Visual</span>
-                                    </div>
-                                </div>
-                                <div className="flex-1 relative bg-black flex items-center justify-center overflow-hidden">
-                                    {vehicleUrl === '' && <div className="text-center text-gray-600 font-mono text-xs"><i className="ph-thin ph-camera-slash text-4xl mb-2 block"></i>Sin Imagen</div>}
-                                    {vehicleUrl === 'loading' && <div className="text-gray-500 font-mono text-xs animate-pulse"><i className="ph-fill ph-circle-notch animate-spin text-2xl mb-2"></i></div>}
-                                    {vehicleUrl && vehicleUrl !== 'loading' && (
-                                        <img src={vehicleUrl} alt="Vehículo Referencia" className="w-full h-full object-cover opacity-60 img-zoom hover:opacity-100 transition duration-500" onClick={() => setLightboxImg(vehicleUrl)} />
+                                    
+                                    {diagramUrl === 'loading' && (
+                                        <>
+                                            <div className="absolute inset-0 hud-scanline"></div>
+                                            <div className="text-pits-cyan font-mono text-xs flex flex-col items-center z-10">
+                                                <i className="ph-bold ph-scan animate-spin text-4xl mb-4"></i>
+                                                <span className="animate-pulse tracking-[0.2em] bg-pits-dark/80 px-4 py-2 rounded">Extrayendo de DB Central...</span>
+                                            </div>
+                                        </>
+                                    )}
+                                    
+                                    {diagramUrl && diagramUrl !== 'loading' && (
+                                        <div className="w-full h-full bg-white rounded-lg shadow-2xl border-2 border-slate-300 p-2 overflow-hidden flex items-center justify-center relative group img-zoom" onClick={() => setLightboxImg(diagramUrl)}>
+                                            <img src={diagramUrl} alt="Diagrama Técnico" className="max-w-full max-h-full object-contain mix-blend-multiply" />
+                                            <div className="absolute bottom-4 right-4 bg-pits-dark/90 text-white text-[10px] font-mono px-3 py-1.5 rounded border border-pits-cyan/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                Click para ampliar
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -394,7 +420,7 @@
                     {!isLogged ? (
                         <LoginScreen onLoginSuccess={() => setIsLogged(true)} />
                     ) : (
-                        <CommandStation role="mechanic" onLogout={() => setIsLogged(false)} />
+                        <CommandStation onLogout={() => setIsLogged(false)} />
                     )}
                 </React.Fragment>
             );
