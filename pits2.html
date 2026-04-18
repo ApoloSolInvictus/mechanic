@@ -95,27 +95,35 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // ==========================================
-        // 1. CONFIGURACIÓN API
-        // ==========================================
         const API_URL = "https://abunda-bca693eb3dbb.herokuapp.com/api/chat";
 
         // ==========================================
-        // 2. BASE DE DATOS JSON + BASE64 (LA MAGIA)
+        // BASE DE DATOS JSON + BASE64 (SISTEMA CORREGIDO)
         // ==========================================
-        // Soberano: Aquí es donde pegarás el código Base64 de las imágenes que subiste.
-        // He puesto un código de prueba en "default" para que veas cómo funciona inmediatamente.
+        // NOTA DEL ARQUITECTO: He usado ACENTOS GRAVES (`) en lugar de comillas ("").
+        // Esto permite que pegues cadenas gigantescas con saltos de línea sin romper el código.
+        // Pega tu código crudo de la imagen del Hyundai y del Internacional aquí adentro.
         
         const DIAGRAM_DATABASE_B64 = {
-            "tiempo": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBzdHlsZT0iYmFja2dyb3VuZDojZmZmOyBmb250LWZhbWlseTptb25vc3BhY2UiPgogIDxwYXRoIGQ9Ik01MCw1MCBMNzUwLDUwIE01MCwxMDAgTDc1MCwxMDAgTTIwMCw1MCBMMjAwLDQwMCIgc3Ryb2tlPSIjMDZiNmQ0IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjMwMCIgeT0iMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjQiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjI3NSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBmMTcyYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RElBR1JBTUEgREUgVElFTVBPPC90ZXh0PgogIDx0ZXh0IHg9IjQwMCIgeT0iMzEwIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjQ3NDhiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4oQkFTRTY0IFNpbXVsYWRvIC0gUGVnYWEgYXF1w60gdHUgY8OzZGlnbyk8L3RleHQ+Cjwvc3ZnPg==",
+            "tiempo": `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBzdHlsZT0iYmFja2dyb3VuZDojZmZmOyBmb250LWZhbWlseTptb25vc3BhY2UiPgogIDxwYXRoIGQ9Ik01MCw1MCBMNzUwLDUwIE01MCwxMDAgTDc1MCwxMDAgTTIwMCw1MCBMMjAwLDQwMCIgc3Ryb2tlPSIjMDZiNmQ0IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjMwMCIgeT0iMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjQiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjI3NSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBmMTcyYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RElBR1JBTUEgREUgVElFTVBPPC90ZXh0PgogIDx0ZXh0IHg9IjQwMCIgeT0iMzEwIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjQ3NDhiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj4oQkFTRTY0IFNpbXVsYWRvIC0gUGVnYWEgYXF1w60gdHUgY8OzZGlnbyk8L3RleHQ+Cjwvc3ZnPg==`,
             
-            "electrico": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBzdHlsZT0iYmFja2dyb3VuZDojZmZmOyBmb250LWZhbWlseTptb25vc3BhY2UiPgogIDxwYXRoIGQ9Ik01MCw1MCBMNzUwLDUwIE01MCwxMDAgTDc1MCwxMDAgTTIwMCw1MCBMMjAwLDQwMCIgc3Ryb2tlPSIjMDZiNmQ0IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjMwMCIgeT0iMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjQiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjI3NSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBmMTcyYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RElBR1JBTUEgRUzDiUNUUklDTzwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjMxMCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+KEJBU0U2NCBTaW11bGFkbyAtIFBlZ2EgYXF1w60gdHUgY8OzZGlnbyk8L3RleHQ+Cjwvc3ZnPg==",
+            "electrico": `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBzdHlsZT0iYmFja2dyb3VuZDojZmZmOyBmb250LWZhbWlseTptb25vc3BhY2UiPgogIDxwYXRoIGQ9Ik01MCw1MCBMNzUwLDUwIE01MCwxMDAgTDc1MCwxMDAgTTIwMCw1MCBMMjAwLDQwMCIgc3Ryb2tlPSIjMDZiNmQ0IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjMwMCIgeT0iMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjQiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjI3NSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBmMTcyYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RElBR1JBTUEgRUzDiUNUUklDTzwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjMxMCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+KEJBU0U2NCBTaW11bGFkbyAtIFBlZ2EgYXF1w60gdHUgY8OzZGlnbyk8L3RleHQ+Cjwvc3ZnPg==`,
             
-            "default": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBzdHlsZT0iYmFja2dyb3VuZDojZmZmOyBmb250LWZhbWlseTptb25vc3BhY2UiPgogIDxwYXRoIGQ9Ik01MCw1MCBMNzUwLDUwIE01MCwxMDAgTDc1MCwxMDAgTTIwMCw1MCBMMjAwLDQwMCIgc3Ryb2tlPSIjMDZiNmQ0IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjMwMCIgeT0iMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjQiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjI3NSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBmMTcyYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QkFTRTY0IERFVEVDVEFETzwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjMxMCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UGVnYSB0dSBjw7NkaWdvIEJhc2U2NCBlbiBlbCBKU09OPC90ZXh0Pgo8L3N2Zz4="
+            "default": `data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNjAwIiBzdHlsZT0iYmFja2dyb3VuZDojZmZmOyBmb250LWZhbWlseTptb25vc3BhY2UiPgogIDxwYXRoIGQ9Ik01MCw1MCBMNzUwLDUwIE01MCwxMDAgTDc1MCwxMDAgTTIwMCw1MCBMMjAwLDQwMCIgc3Ryb2tlPSIjMDZiNmQ0IiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9IjAuMyIvPgogIDxyZWN0IHg9IjMwMCIgeT0iMjAwIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZWY0NDQ0IiBzdHJva2Utd2lkdGg9IjQiLz4KICA8dGV4dCB4PSI0MDAiIHk9IjI3NSIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzBmMTcyYSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QkFTRTY0IERFVEVDVEFETzwvdGV4dD4KICA8dGV4dCB4PSI0MDAiIHk9IjMxMCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UGVnYSB0dSBjw7NkaWdvIEJhc2U2NCBlbiBlbCBKU09OPC90ZXh0Pgo8L3N2Zz4=`
+        };
+
+        // --- FILTRO DE SEGURIDAD PARA BASE64 ---
+        // Esta función agarra tu código y asegura que el navegador lo entienda como imagen.
+        const formatBase64 = (rawString) => {
+            if (!rawString) return '';
+            const cleanStr = rawString.trim().replace(/\s/g, ''); // Quitar espacios/saltos ocultos
+            if (cleanStr.startsWith('http')) return cleanStr; // Por si pones una URL normal
+            if (cleanStr.startsWith('data:image')) return cleanStr; // Si ya está perfecto
+            return `data:image/jpeg;base64,${cleanStr}`; // Si es la cadena pura, le inyecta el prefijo
         };
 
         // ==========================================
-        // PANTALLA DE LOGIN (SOLO MECÁNICOS)
+        // PANTALLA DE LOGIN
         // ==========================================
         const LoginScreen = ({ onLoginSuccess }) => {
             const [email, setEmail] = useState("");
@@ -156,7 +164,7 @@
         };
 
         // ==========================================
-        // ESTACIÓN DE MANDO 2-WAY (Chat + Diagrama Base64)
+        // ESTACIÓN DE MANDO
         // ==========================================
         const CommandStation = ({ onLogout }) => {
             const [messages, setMessages] = useState([
@@ -165,7 +173,6 @@
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
             
-            // Monitor Visual (Solo Diagrama)
             const [diagramUrl, setDiagramUrl] = useState('');
             const [lightboxImg, setLightboxImg] = useState(null); 
 
@@ -181,8 +188,6 @@
                 setIsLoading(true);
                 setDiagramUrl('loading');
 
-                // 💡 INTERCEPTOR CUÁNTICO FRONTEND (Base64)
-                // Escaneamos lo que pide el usuario para cargar el código Base64 directamente
                 let forcedBase64 = DIAGRAM_DATABASE_B64.default;
                 const textLower = userText.toLowerCase();
                 
@@ -193,7 +198,6 @@
                 }
 
                 try {
-                    // Enviamos la petición de texto al backend de Heroku para obtener la explicación mecánica
                     const response = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -207,18 +211,18 @@
                     
                     const data = await response.json();
                     
-                    // Limpiamos cualquier imagen o etiqueta basura que la IA pueda enviar
                     let aiText = data.response || "Error de decodificación.";
-                    aiText = aiText.replace(/!\[.*?\]\(.*?\)/g, ''); // Elimina imágenes Markdown
-                    aiText = aiText.replace(/\[DIAGRAMA:.*?\]/g, ''); // Elimina etiquetas viejas
+                    aiText = aiText.replace(/!\[.*?\]\(.*?\)/g, ''); 
+                    aiText = aiText.replace(/\[DIAGRAMA:.*?\]/g, ''); 
 
-                    // Actualizamos el chat y el monitor de diagramas
                     setMessages(prev => [...prev, { role: 'ai', content: aiText.trim() }]);
-                    setDiagramUrl(forcedBase64); 
+                    
+                    // Aseguramos formato Base64 correcto antes de mandarlo al monitor
+                    setDiagramUrl(formatBase64(forcedBase64)); 
 
                 } catch (error) {
                     setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Conexión perdida con el servidor central." }]);
-                    setDiagramUrl(forcedBase64); // Mostramos el plano local aunque no haya internet
+                    setDiagramUrl(formatBase64(forcedBase64)); 
                 } finally {
                     setIsLoading(false);
                 }
@@ -227,7 +231,7 @@
             return (
                 <div className="flex flex-col h-screen relative overflow-hidden z-10">
                     
-                    {/* VISOR PANTALLA COMPLETA (LIGHTBOX) PARA DIAGRAMAS */}
+                    {/* LIGHTBOX */}
                     {lightboxImg && (
                         <div className="fixed inset-0 z-[100] bg-pits-dark/95 backdrop-blur-xl flex items-center justify-center p-4 cursor-zoom-out animate-[fadeIn_0.3s_ease-out]" onClick={() => setLightboxImg(null)}>
                             <button className="absolute top-6 right-6 text-slate-400 hover:text-white bg-pits-panel border border-slate-700 p-3 rounded-full transition z-50">
@@ -237,7 +241,7 @@
                         </div>
                     )}
 
-                    {/* HEADER TÁCTICO */}
+                    {/* HEADER */}
                     <header className="glass-panel border-b-0 p-3 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-xl bg-pits-cyan/10 border border-pits-cyan/50 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.2)]">
@@ -247,7 +251,7 @@
                                 <h1 className="font-display font-bold text-lg leading-none uppercase tracking-widest text-white mb-1">Infiniti Pits</h1>
                                 <div className="flex items-center gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-pits-cyan animate-pulse"></span>
-                                    <span className="text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Base64 Local Storage</span>
+                                    <span className="text-[10px] text-pits-cyan font-mono tracking-widest uppercase">Base64 Render Engine Activo</span>
                                 </div>
                             </div>
                         </div>
@@ -256,10 +260,10 @@
                         </button>
                     </header>
 
-                    {/* MAIN LAYOUT (2 ESPACIOS: CHAT 40% | DIAGRAMA 60%) */}
+                    {/* LAYOUT */}
                     <div className="flex-1 flex flex-col lg:flex-row w-full overflow-hidden p-3 gap-4">
                         
-                        {/* 1. EL CHAT (Izquierda) */}
+                        {/* CHAT (40%) */}
                         <div className="w-full lg:w-[40%] flex flex-col glass-panel rounded-2xl border border-pits-border shadow-2xl overflow-hidden shrink-0 h-[50vh] lg:h-full">
                             <div className="bg-pits-panel/80 p-3 border-b border-pits-border flex items-center gap-2 shrink-0">
                                 <i className="ph-fill ph-terminal-window text-pits-cyan"></i>
@@ -287,7 +291,7 @@
                                             <div className="w-8 h-8 rounded-xl bg-pits-cyan/10 border border-pits-cyan/30 flex items-center justify-center text-pits-cyan mt-1"><i className="ph-fill ph-robot"></i></div>
                                             <div className="p-4 rounded-2xl rounded-tl-none bg-black/60 border border-pits-cyan/20 flex items-center gap-3">
                                                 <i className="ph-bold ph-circle-notch animate-spin text-pits-cyan text-lg"></i>
-                                                <span className="text-xs text-gray-400 font-mono tracking-widest uppercase">Consultando ALLDATA...</span>
+                                                <span className="text-xs text-gray-400 font-mono tracking-widest uppercase">Consultando matriz...</span>
                                             </div>
                                         </div>
                                     </div>
@@ -297,13 +301,13 @@
 
                             <div className="p-3 md:p-4 bg-pits-panel border-t border-pits-border shrink-0">
                                 <div className="relative flex gap-2">
-                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Escribe el vehículo y pieza..." className="w-full bg-pits-dark border border-pits-border rounded-xl px-4 py-4 text-sm text-white focus:outline-none focus:border-pits-cyan transition font-mono" disabled={isLoading} autoComplete="off" />
+                                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={e => e.key === 'Enter' && handleSend()} placeholder="Escribe tu consulta..." className="w-full bg-pits-dark border border-pits-border rounded-xl px-4 py-4 text-sm text-white focus:outline-none focus:border-pits-cyan transition font-mono" disabled={isLoading} autoComplete="off" />
                                     <button onClick={handleSend} disabled={!input.trim() || isLoading} className="w-14 bg-pits-cyan text-pits-dark rounded-xl flex items-center justify-center hover:bg-cyan-400 transition disabled:opacity-50 shrink-0"><i className="ph-bold ph-paper-plane-right text-xl"></i></button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 2. EL MONITOR DE DIAGRAMAS (Derecha) */}
+                        {/* DIAGRAMA (60%) */}
                         <div className="w-full lg:w-[60%] flex flex-col h-[50vh] lg:h-full shrink-0">
                             <div className="flex-1 glass-panel rounded-2xl border border-pits-cyan/40 flex flex-col overflow-hidden relative shadow-[0_0_30px_rgba(6,182,212,0.05)]">
                                 
@@ -332,14 +336,15 @@
                                             <div className="absolute inset-0 hud-scanline"></div>
                                             <div className="text-pits-cyan font-mono text-xs flex flex-col items-center z-10">
                                                 <i className="ph-bold ph-scan animate-spin text-4xl mb-4"></i>
-                                                <span className="animate-pulse tracking-[0.2em] bg-pits-dark/80 px-4 py-2 rounded">Cargando Base64 Data...</span>
+                                                <span className="animate-pulse tracking-[0.2em] bg-pits-dark/80 px-4 py-2 rounded">Cargando Data Base64...</span>
                                             </div>
                                         </>
                                     )}
                                     
+                                    {/* 🌟 LA ETIQUETA IMG AHORA SOPORTA CUALQUIER CADENA BASE64 🌟 */}
                                     {diagramUrl && diagramUrl !== 'loading' && (
                                         <div className="w-full h-full bg-white rounded-lg shadow-2xl border-2 border-slate-300 p-2 overflow-hidden flex items-center justify-center relative group cursor-zoom-in" onClick={() => setLightboxImg(diagramUrl)}>
-                                            <img src={diagramUrl} alt="Diagrama Técnico" className="max-w-full max-h-full object-contain mix-blend-multiply hover:scale-[1.02] transition-transform duration-300" />
+                                            <img src={diagramUrl} alt="Diagrama Técnico" className="max-w-full max-h-full object-contain hover:scale-[1.02] transition-transform duration-300" />
                                             <div className="absolute bottom-4 right-4 bg-pits-dark/90 text-white text-[10px] font-mono px-3 py-1.5 rounded border border-pits-cyan/30 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 Click para ampliar
                                             </div>
