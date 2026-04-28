@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suscripción | Infiniti Pits</title>
+    
+    <!-- Librerías de Diseño e Iconos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- React Core -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- PAYPAL SDK (Cargado una sola vez para ambos botones) -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AZhuHaoRMy0PKJJbcCBDANsX-jjoCCBLzhEEvFB7v5oVPxRH8YIxuP3P4_Zap0eEOU-wvzYstPQ-kjD4&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        pits: {
+                            dark: '#0a0a0a',     
+                            panel: '#171717',    
+                            primary: '#dc2626',  
+                            accent: '#fca5a5',   
+                            border: '#262626'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #0a0a0a; color: #f5f5f5; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #dc2626; border-radius: 3px; }
+        
+        .glass-panel {
+            background: rgba(23, 23, 23, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .bg-matrix {
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(220, 38, 38, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(37, 99, 235, 0.08), transparent 25%);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-pits-primary selection:text-white bg-matrix">
+
+    <div id="root" class="min-h-screen flex flex-col relative z-10"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const App = () => {
+            const [paymentMethod, setPaymentMethod] = useState('digital'); // digital | manual
+
+            useEffect(() => {
+                // Renderizado de Botones PayPal al cargar el componente
+                if (window.paypal) {
+                    // Botón Mensual
+                    const monthlyContainer = document.getElementById('paypal-button-container-P-09682331DJ592415SNHYBKAY');
+                    if (monthlyContainer && !monthlyContainer.hasChildNodes()) {
+                        window.paypal.Buttons({
+                            style: { shape: 'pill', color: 'gold', layout: 'vertical', label: 'subscribe' },
+                            createSubscription: function(data, actions) {
+                                return actions.subscription.create({ plan_id: 'P-09682331DJ592415SNHYBKAY' });
+                            },
+                            onApprove: function(data, actions) {
+                                // Redirigir o dar mensaje de éxito
+                                window.location.href = "https://pits.infiniti-ia.com/exito.html?sub=" + data.subscriptionID;
+                            }
+                        }).render('#paypal-button-container-P-09682331DJ592415SNHYBKAY');
+                    }
+
+                    // Botón Anual
+                    const annualContainer = document.getElementById('paypal-button-container-P-62347196VJ1994645NHYBMEY');
+                    if (annualContainer && !annualContainer.hasChildNodes()) {
+                        window.paypal.Buttons({
+                            style: { shape: 'pill', color: 'gold', layout: 'vertical', label: 'subscribe' },
+                            createSubscription: function(data, actions) {
+                                return actions.subscription.create({ plan_id: 'P-62347196VJ1994645NHYBMEY' });
+                            },
+                            onApprove: function(data, actions) {
+                                // Redirigir o dar mensaje de éxito
+                                window.location.href = "https://pits.infiniti-ia.com/exito.html?sub=" + data.subscriptionID;
+                            }
+                        }).render('#paypal-button-container-P-62347196VJ1994645NHYBMEY');
+                    }
+                }
+            }, [paymentMethod]); // Se vuelve a ejecutar si cambian las pestañas, aunque por seguridad de PayPal es mejor renderizarlos siempre.
+
+            return (
+                <div className="flex flex-col min-h-screen">
+                    
+                    {/* ENCABEZADO */}
+                    <header className="w-full p-6 flex justify-center items-center border-b border-white/5 bg-black/40 backdrop-blur-md">
+                        <a href="https://pits.infiniti-ia.com" className="flex items-center gap-3 group">
+                            <div className="w-10 h-10 rounded-full bg-pits-primary flex items-center justify-center shadow-[0_0_15px_rgba(220,38,38,0.5)] group-hover:scale-105 transition">
+                                <i className="ph-fill ph-engine text-white text-xl"></i>
+                            </div>
+                            <h1 className="font-display font-bold text-2xl tracking-widest text-white uppercase">INFINITI <span className="text-pits-primary">PITS</span></h1>
+                        </a>
+                    </header>
+
+                    {/* CONTENIDO PRINCIPAL */}
+                    <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-12 flex flex-col items-center">
+                        
+                        <div className="text-center mb-10 max-w-2xl">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/30 bg-green-500/10 text-green-400 text-xs font-bold uppercase tracking-widest mb-4">
+                                <i className="ph-fill ph-check-circle"></i> Acceso Ilimitado 24/7
+                            </div>
+                            <h2 className="text-3xl md:text-5xl font-display font-bold text-white mb-4 leading-tight">Activa tu <span className="text-pits-primary">Mecánico IA</span></h2>
+                            <p className="text-gray-400 text-base md:text-lg">Elige tu plan y deja de adivinar fallas. Torques, manuales y diagnósticos OBD2 exactos en tu bolsillo.</p>
+                        </div>
+
+                        {/* SELECTOR DE MÉTODO DE PAGO */}
+                        <div className="bg-black/50 p-1 rounded-xl mb-10 border border-pits-border inline-flex shadow-lg">
+                            <button 
+                                onClick={() => setPaymentMethod('digital')}
+                                className={`px-6 py-3 rounded-lg text-sm font-bold transition flex items-center gap-2 ${paymentMethod === 'digital' ? 'bg-pits-primary text-white shadow-md' : 'text-gray-500 hover:text-gray-300'}`}
+                            >
+                                <i className="ph-fill ph-credit-card"></i> Tarjeta / PayPal
+                            </button>
+                            <button 
+                                onClick={() => setPaymentMethod('manual')}
+                                className={`px-6 py-3 rounded-lg text-sm font-bold transition flex items-center gap-2 ${paymentMethod === 'manual' ? 'bg-pits-panel border border-pits-border text-white shadow-md' : 'text-gray-500 hover:text-gray-300'}`}
+                            >
+                                <i className="ph-fill ph-bank"></i> SINPE / IBAN
+                            </button>
+                        </div>
+
+                        {/* TARJETAS DE PRECIOS */}
+                        <div className="w-full grid md:grid-cols-2 gap-8 max-w-4xl relative">
+                            
+                            {/* PLAN MENSUAL */}
+                            <div className="glass-panel p-8 rounded-3xl flex flex-col border-t-4 border-t-slate-700 hover:border-pits-primary/50 transition duration-300">
+                                <h3 className="text-2xl font-bold text-white mb-2">Plan Mensual</h3>
+                                <p className="text-sm text-gray-400 mb-6 border-b border-white/10 pb-6">Paga mes a mes, cancela cuando quieras.</p>
+                                
+                                <div className="mb-8">
+                                    <span className="text-4xl font-display font-black text-white">1,500 ₡</span>
+                                    <span className="text-sm text-gray-500 ml-2">/ mes</span>
+                                    <div className="text-sm text-gray-400 mt-1 font-mono">o $5.00 USD</div>
+                                </div>
+
+                                <ul className="space-y-4 mb-10 flex-1 text-sm text-gray-300">
+                                    <li className="flex items-start gap-3"><i className="ph-fill ph-check-circle text-pits-primary text-lg shrink-0"></i> <span>Consultas y diagnósticos ilimitados</span></li>
+                                    <li className="flex items-start gap-3"><i className="ph-fill ph-check-circle text-pits-primary text-lg shrink-0"></i> <span>Buscador de códigos OBD-II</span></li>
+                                    <li className="flex items-start gap-3"><i className="ph-fill ph-check-circle text-pits-primary text-lg shrink-0"></i> <span>Base de datos ALLDATA y Europeos</span></li>
+                                </ul>
+
+                                {/* BOTON PAYPAL / INSTRUCCIONES SINPE */}
+                                <div className="mt-auto bg-black/40 p-4 rounded-2xl border border-pits-border min-h-[100px] flex flex-col justify-center">
+                                    {paymentMethod === 'digital' ? (
+                                        <div id="paypal-button-container-P-09682331DJ592415SNHYBKAY" className="w-full relative z-20"></div>
+                                    ) : (
+                                        <div className="text-center">
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Pagar por SINPE Móvil (CR)</p>
+                                            <p className="text-2xl font-mono font-bold text-green-400 mb-4">8908-9582</p>
+                                            
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest mb-2 mt-4 border-t border-white/10 pt-4">Transferencia IBAN ($ USD)</p>
+                                            <p className="text-sm font-mono text-blue-400 mb-4 break-all">CR64081400012022068399</p>
+
+                                            <a href="https://wa.me/50689089582?text=Hola,%20acabo%20de%20hacer%20el%20pago%20mensual%20de%20Infiniti%20Pits.%20Adjunto%20el%20comprobante." target="_blank" className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition text-sm">
+                                                <i className="ph-fill ph-whatsapp text-lg"></i> Enviar Comprobante
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* PLAN ANUAL (DESTACADO) */}
+                            <div className="glass-panel p-8 rounded-3xl flex flex-col border-t-4 border-t-pits-primary shadow-2xl shadow-pits-primary/20 transform md:-translate-y-4 bg-gradient-to-b from-pits-panel to-pits-dark relative">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-pits-primary text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
+                                    Ahorras 3,000 ₡
+                                </div>
+                                
+                                <h3 className="text-2xl font-bold text-white mb-2">Plan Anual</h3>
+                                <p className="text-sm text-pits-accent mb-6 border-b border-pits-primary/20 pb-6">La mejor opción. Paga 10 meses y llévate 12.</p>
+                                
+                                <div className="mb-8">
+                                    <span className="text-4xl font-display font-black text-white">15,000 ₡</span>
+                                    <span className="text-sm text-gray-500 ml-2">/ año</span>
+                                    <div className="text-sm text-pits-accent mt-1 font-mono">o $33.00 USD</div>
+                                </div>
+
+                                <ul className="space-y-4 mb-10 flex-1 text-sm text-gray-300">
+                                    <li className="flex items-start gap-3"><i className="ph-fill ph-star text-pits-gold text-lg shrink-0"></i> <strong>Ahorro anual asegurado</strong></li>
+                                    <li className="flex items-start gap-3"><i className="ph-fill ph-check-circle text-pits-primary text-lg shrink-0"></i> <span>Consultas y diagnósticos ilimitados</span></li>
+                                    <li className="flex items-start gap-3"><i className="ph-fill ph-check-circle text-pits-primary text-lg shrink-0"></i> <span>Buscador de códigos OBD-II</span></li>
+                                    <li className="flex items-start gap-3"><i className="ph-fill ph-check-circle text-pits-primary text-lg shrink-0"></i> <span>Base de datos ALLDATA y Europeos</span></li>
+                                </ul>
+
+                                {/* BOTON PAYPAL / INSTRUCCIONES SINPE */}
+                                <div className="mt-auto bg-black/40 p-4 rounded-2xl border border-pits-primary/30 min-h-[100px] flex flex-col justify-center">
+                                    {paymentMethod === 'digital' ? (
+                                        <div id="paypal-button-container-P-62347196VJ1994645NHYBMEY" className="w-full relative z-20"></div>
+                                    ) : (
+                                        <div className="text-center">
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Pagar por SINPE Móvil (CR)</p>
+                                            <p className="text-2xl font-mono font-bold text-green-400 mb-4">8908-9582</p>
+                                            
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest mb-2 mt-4 border-t border-white/10 pt-4">Transferencia IBAN ($ USD)</p>
+                                            <p className="text-sm font-mono text-blue-400 mb-4 break-all">CR64081400012022068399</p>
+
+                                            <a href="https://wa.me/50689089582?text=Hola,%20acabo%20de%20hacer%20el%20pago%20ANUAL%20de%20Infiniti%20Pits.%20Adjunto%20el%20comprobante." target="_blank" className="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition text-sm">
+                                                <i className="ph-fill ph-whatsapp text-lg"></i> Enviar Comprobante
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <div className="mt-12 text-center text-xs text-gray-500 font-mono">
+                            <p className="mb-2"><i className="ph-fill ph-lock-key text-gray-400"></i> Pagos encriptados de extremo a extremo.</p>
+                            <p>Para activar tu cuenta manualmente por SINPE/IBAN, envía el comprobante por WhatsApp al +506-6067-7523 y te daremos acceso en menos de 5 minutos.</p>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
