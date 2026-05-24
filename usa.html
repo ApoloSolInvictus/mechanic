@@ -274,7 +274,7 @@
                 setIsLoading(true);
 
                 try {
-                    const API_URL = "https://abunda-bca693eb3dbb.herokuapp.com/api/chat";
+                    const API_URL = window.INFINITI_PITS_API_URL || "/api/chat";
 
                     const mechanicPrompt = `
                         YOU ARE: INFINITI PITS, the AI Chief Engineer and Master Mechanic for professional repair shops.
