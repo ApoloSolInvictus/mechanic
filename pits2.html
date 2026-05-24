@@ -71,6 +71,8 @@
         .markdown-body strong { color: #ffffff; font-weight: 600; }
         .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; color: #cbd5e1; }
         .markdown-body img { display: none !important; }
+        .visual-source { color: #06b6d4; text-decoration: none; }
+        .visual-source:hover { color: #f59e0b; }
 
         .diagram-bg {
             background-color: #f8fafc;
@@ -143,10 +145,23 @@
 
         const formatBase64 = (rawString) => {
             if (!rawString) return '';
-            const cleanStr = rawString.trim().replace(/\s/g, ''); 
-            if (cleanStr.startsWith('http')) return cleanStr; 
-            if (cleanStr.startsWith('data:image')) return cleanStr; 
-            return `data:image/jpeg;base64,${cleanStr}`; 
+            const cleanStr = rawString.trim().replace(/\s/g, '');
+            if (cleanStr.startsWith('http')) return cleanStr;
+            if (cleanStr.startsWith('data:image')) return cleanStr;
+            return `data:image/jpeg;base64,${cleanStr}`;
+        };
+
+        const stripVisualResults = (text) => {
+            return (text || '')
+                .replace(/<div class="pits-visual-results"[\s\S]*?<\/div>/gi, '')
+                .replace(/<figure[\s\S]*?<\/figure>/gi, '')
+                .trim();
+        };
+
+        const normalizeImageResults = (images) => {
+            return Array.isArray(images)
+                ? images.filter(img => img && img.url).slice(0, 6)
+                : [];
         };
 
         // ==========================================
@@ -285,9 +300,10 @@
             const [isLoading, setIsLoading] = useState(false);
             
             // Estado del Monitor
-            const [viewType, setViewType] = useState('idle'); // idle, loading, base64, mermaid
+            const [viewType, setViewType] = useState('idle'); // idle, loading, base64, mermaid, gallery
             const [viewData, setViewData] = useState('');
-            const [lightboxImg, setLightboxImg] = useState(null); 
+            const [visualResults, setVisualResults] = useState([]);
+            const [lightboxImg, setLightboxImg] = useState(null);
 
             const messagesEndRef = useRef(null);
             useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
@@ -300,6 +316,7 @@
                 setInput('');
                 setIsLoading(true);
                 setViewType('loading');
+                setVisualResults([]);
 
                 // 💡 INTERCEPTOR MACHINE LEARNING (Local Fallbacks)
                 let determinedType = 'base64';
@@ -332,12 +349,16 @@
                     if (!response.ok) throw new Error('Error de red');
                     
                     const data = await response.json();
-                    let aiText = data.response || "Error de decodificación.";
+                    const apiImages = normalizeImageResults(data.images);
+                    let aiText = stripVisualResults(data.text || data.response || "Error de decodificación.");
 
                     const mermaidMatch = aiText.match(/```mermaid\n([\s\S]*?)```/i);
                     const base64Match = aiText.match(/\[DIAGRAMA:\s*(.*?)\]/i);
 
-                    if (mermaidMatch && mermaidMatch[1]) {
+                    if (apiImages.length > 0) {
+                        determinedType = 'gallery';
+                        dataToRender = apiImages[0].url;
+                    } else if (mermaidMatch && mermaidMatch[1]) {
                         determinedType = 'mermaid';
                         dataToRender = mermaidMatch[1].trim();
                         aiText = aiText.replace(/```mermaid\n[\s\S]*?```/i, '').trim();
@@ -351,6 +372,7 @@
 
                     setMessages(prev => [...prev, { role: 'ai', content: aiText.trim() }]);
                     setViewType(determinedType);
+                    setVisualResults(apiImages);
                     setViewData(determinedType === 'base64' ? formatBase64(dataToRender) : dataToRender);
 
                 } catch (error) {
@@ -366,7 +388,7 @@
                 <div className="flex flex-col h-screen lg:h-screen relative overflow-hidden z-10 bg-pits-dark">
                     
                     {/* LIGHTBOX CON ZOOM */}
-                    {lightboxImg && viewType === 'base64' && (
+                    {lightboxImg && (viewType === 'base64' || viewType === 'gallery') && (
                         <ZoomLightbox src={lightboxImg} onClose={() => setLightboxImg(null)} />
                     )}
 
@@ -444,12 +466,12 @@
                                 {/* Header del Monitor */}
                                 <div className="bg-pits-panel p-2 md:p-3 border-b border-pits-border flex justify-between items-center z-10 shrink-0">
                                     <div className="flex items-center gap-2 md:gap-3">
-                                        <i className={`ph-fill text-base md:text-lg ${viewType === 'mermaid' ? 'ph-tree-structure text-pits-gold' : 'ph-file-text text-pits-cyan'}`}></i>
+                                        <i className={`ph-fill text-base md:text-lg ${viewType === 'mermaid' ? 'ph-tree-structure text-pits-gold' : viewType === 'gallery' ? 'ph-images text-pits-cyan' : 'ph-file-text text-pits-cyan'}`}></i>
                                         <span className={`font-mono text-[9px] md:text-[10px] tracking-widest uppercase font-bold ${viewType === 'mermaid' ? 'text-pits-gold' : 'text-pits-cyan'}`}>
-                                            {viewType === 'mermaid' ? 'Flujo Lógico' : 'Monitor Físico'}
+                                            {viewType === 'mermaid' ? 'Flujo Lógico' : viewType === 'gallery' ? 'Imágenes Web' : 'Monitor Físico'}
                                         </span>
                                     </div>
-                                    <button onClick={() => { if(viewType === 'base64' && viewData) setLightboxImg(viewData); }} className="text-[9px] md:text-[10px] bg-slate-800 hover:bg-slate-700 text-white font-mono px-2 py-1 md:px-3 md:py-1.5 rounded transition flex items-center gap-1 md:gap-2 uppercase tracking-widest disabled:opacity-50" disabled={viewType !== 'base64'}>
+                                    <button onClick={() => { if((viewType === 'base64' || viewType === 'gallery') && viewData) setLightboxImg(viewData); }} className="text-[9px] md:text-[10px] bg-slate-800 hover:bg-slate-700 text-white font-mono px-2 py-1 md:px-3 md:py-1.5 rounded transition flex items-center gap-1 md:gap-2 uppercase tracking-widest disabled:opacity-50" disabled={viewType !== 'base64' && viewType !== 'gallery'}>
                                         <i className="ph-bold ph-magnifying-glass-plus text-sm md:text-base"></i> <span className="hidden sm:inline">Ampliar / Zoom</span>
                                     </button>
                                 </div>
@@ -482,6 +504,28 @@
                                             <img src={viewData} alt="Diagrama Técnico" className="max-w-full max-h-full object-contain hover:scale-[1.02] transition-transform duration-300 mix-blend-multiply" />
                                             <div className="absolute bottom-2 right-2 md:bottom-4 md:right-4 bg-pits-dark/90 text-white text-[9px] md:text-[10px] font-mono px-2 py-1 md:px-3 md:py-1.5 rounded border border-pits-cyan/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                                                 <i className="ph-bold ph-magnifying-glass-plus"></i> Ampliar
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* MODO GALERÍA (Imágenes técnicas encontradas en web) */}
+                                    {viewType === 'gallery' && visualResults.length > 0 && (
+                                        <div className="w-full h-full bg-white rounded-lg shadow-2xl border-2 border-slate-300 p-2 md:p-3 overflow-y-auto animate-[fadeIn_0.5s_ease-out]">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+                                                {visualResults.map((img, idx) => (
+                                                    <figure key={idx} className="border border-slate-300 rounded-lg overflow-hidden bg-slate-50">
+                                                        <button type="button" onClick={() => { setViewData(img.url); setLightboxImg(img.url); }} className="w-full h-36 md:h-44 bg-white flex items-center justify-center overflow-hidden">
+                                                            <img src={img.thumbnail || img.url} alt={img.title || 'Referencia visual'} className="max-w-full max-h-full object-contain" loading="lazy" />
+                                                        </button>
+                                                        <figcaption className="p-2 text-[10px] md:text-xs leading-snug text-slate-700 font-mono">
+                                                            <div className="font-bold text-slate-900">{img.title || `Referencia ${idx + 1}`}</div>
+                                                            <div className="mt-1 text-slate-500">{img.source || img.provider || 'web'}{img.license ? ` · ${img.license}` : ''}</div>
+                                                            <a href={img.sourceUrl || img.url} target="_blank" rel="noopener noreferrer" className="visual-source inline-flex items-center gap-1 mt-1">
+                                                                <i className="ph-bold ph-arrow-square-out"></i> Fuente
+                                                            </a>
+                                                        </figcaption>
+                                                    </figure>
+                                                ))}
                                             </div>
                                         </div>
                                     )}

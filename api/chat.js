@@ -1,5 +1,9 @@
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+const GOOGLE_IMAGE_SEARCH_URL = "https://www.googleapis.com/customsearch/v1";
+const OPENVERSE_IMAGE_SEARCH_URL = "https://api.openverse.org/v1/images/";
+const WIKIMEDIA_IMAGE_SEARCH_URL = "https://commons.wikimedia.org/w/api.php";
 const DEFAULT_MODEL = "gpt-5.4-mini";
+const DEFAULT_IMAGE_COUNT = 3;
 
 const SYSTEM_PROMPT = `
 Eres INFINITI PITS, un asistente tecnico de mecanica automotriz para duenos de vehiculos, talleres y mecanicos profesionales.
@@ -12,7 +16,7 @@ Al responder:
 - Para mecanicos, da pasos de diagnostico, pruebas con multimetro/manometro/escaner, valores esperados cuando sean razonablemente conocidos y advertencias de seguridad.
 - Para duenos de vehiculo, explica en lenguaje claro, prioriza seguridad y recomienda taller cuando haya riesgo.
 - Si el usuario pide un flujo, puedes responder con un bloque \`\`\`mermaid.
-- Si en una fase futura se te da una URL publica verificada de una imagen tecnica, puedes incluirla como [DIAGRAMA: https://...].
+- Si la respuesta se apoya en imagenes, explica que son referencias visuales y que las especificaciones finales deben verificarse con el manual OEM del vehiculo exacto.
 `.trim();
 
 function setCorsHeaders(req, res) {
@@ -63,6 +67,15 @@ function cleanText(value, maxLength = 6000) {
   return value.replace(/\u0000/g, "").trim().slice(0, maxLength);
 }
 
+function stripGeneratedVisualHtml(value) {
+  return String(value || "")
+    .replace(/<div class="pits-visual-results"[\s\S]*?<\/div>/gi, "")
+    .replace(/<figure[\s\S]*?<\/figure>/gi, "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function normalizeHistory(history) {
   if (!Array.isArray(history)) return [];
 
@@ -70,7 +83,7 @@ function normalizeHistory(history) {
     .slice(-10)
     .map((message) => {
       const role = String(message?.role || "").toLowerCase();
-      const content = cleanText(message?.content, 4000);
+      const content = cleanText(stripGeneratedVisualHtml(message?.content), 4000);
       if (!content) return null;
 
       return {
@@ -112,6 +125,269 @@ async function readOpenAIJson(response) {
 function getMaxOutputTokens() {
   const value = Number.parseInt(process.env.OPENAI_MAX_OUTPUT_TOKENS || "1400", 10);
   return Number.isFinite(value) && value > 0 ? value : 1400;
+}
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 7000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function getImageCount() {
+  const value = Number.parseInt(process.env.IMAGE_SEARCH_COUNT || String(DEFAULT_IMAGE_COUNT), 10);
+  if (!Number.isFinite(value) || value < 0) return DEFAULT_IMAGE_COUNT;
+  return Math.min(value, 6);
+}
+
+function isSalesPrompt(message) {
+  return /agente de ventas|director de ventas|sales_prompt|ventas cuantico|maximus/i.test(message);
+}
+
+function extractVisualQueryText(message) {
+  const userInputMatch = message.match(/USER INPUT:\s*"?([\s\S]*?)"?\s*$/i);
+  const rawText = userInputMatch ? userInputMatch[1] : message;
+
+  return cleanText(rawText, 260)
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/^["']|["']$/g, "")
+    .trim();
+}
+
+function shouldSearchImages(message) {
+  if (process.env.IMAGE_SEARCH_ENABLED === "false") return false;
+  if (isSalesPrompt(message)) return false;
+
+  const text = extractVisualQueryText(message).toLowerCase();
+  if (!text) return false;
+
+  return /auto|carro|vehiculo|vehículo|motor|engine|moto|motorcycle|cuadraciclo|atv|utv|quad|obd|dtc|codigo|código|falla|fallo|sensor|fusible|relay|rel[eé]|buj[ií]a|bobina|alternador|arranque|bateria|batería|ecu|ecm|pcm|transmisi[oó]n|transmission|freno|brake|suspensi[oó]n|direcci[oó]n|wiring|cableado|electrico|eléctrico|diagrama|diagram|manual|taller|partes|parts|torque|apriete/.test(text);
+}
+
+function buildImageSearchQuery(message) {
+  const visualText = extractVisualQueryText(message);
+  return `${visualText} manual de taller espanol diagrama partes motor electrico auto moto cuadraciclo ATV UTV`.trim();
+}
+
+function getImageProvider() {
+  const provider = String(process.env.IMAGE_SEARCH_PROVIDER || "auto").toLowerCase();
+  if (["auto", "google", "openverse", "wikimedia"].includes(provider)) return provider;
+  return "auto";
+}
+
+function isSafeHttpUrl(value) {
+  if (typeof value !== "string") return false;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch (error) {
+    return false;
+  }
+}
+
+function normalizeImageResult(result) {
+  const url = result.url || result.link;
+  if (!isSafeHttpUrl(url)) return null;
+
+  const sourceUrl = result.sourceUrl || result.contextLink || result.foreign_landing_url || url;
+  const thumbnail = result.thumbnail || result.thumbnailLink || result.thumburl || url;
+
+  return {
+    title: cleanText(result.title || "Diagrama tecnico", 160),
+    url,
+    thumbnail: isSafeHttpUrl(thumbnail) ? thumbnail : url,
+    sourceUrl: isSafeHttpUrl(sourceUrl) ? sourceUrl : url,
+    source: cleanText(result.source || result.displayLink || result.provider || "web", 80),
+    provider: cleanText(result.provider || "web", 40),
+    license: cleanText(result.license || result.licenseLabel || "", 80),
+    attribution: cleanText(result.attribution || "", 300),
+  };
+}
+
+function dedupeImages(images, limit) {
+  const seen = new Set();
+  const unique = [];
+
+  for (const image of images) {
+    const normalized = normalizeImageResult(image);
+    if (!normalized || seen.has(normalized.url)) continue;
+    seen.add(normalized.url);
+    unique.push(normalized);
+    if (unique.length >= limit) break;
+  }
+
+  return unique;
+}
+
+async function searchGoogleImages(query, limit) {
+  if (!process.env.GOOGLE_SEARCH_API_KEY || !process.env.GOOGLE_SEARCH_ENGINE_ID) {
+    return [];
+  }
+
+  const params = new URLSearchParams({
+    key: process.env.GOOGLE_SEARCH_API_KEY,
+    cx: process.env.GOOGLE_SEARCH_ENGINE_ID,
+    q: query,
+    searchType: "image",
+    safe: "active",
+    num: String(Math.min(limit, 10)),
+  });
+
+  if (process.env.GOOGLE_IMAGE_RIGHTS) {
+    params.set("rights", process.env.GOOGLE_IMAGE_RIGHTS);
+  }
+
+  const response = await fetchWithTimeout(`${GOOGLE_IMAGE_SEARCH_URL}?${params.toString()}`);
+  if (!response.ok) return [];
+
+  const data = await response.json();
+  return (data.items || []).map((item) => ({
+    title: item.title,
+    url: item.link,
+    thumbnail: item.image?.thumbnailLink,
+    sourceUrl: item.image?.contextLink,
+    source: item.displayLink,
+    provider: "google",
+  }));
+}
+
+async function searchOpenverseImages(query, limit) {
+  const params = new URLSearchParams({
+    q: query,
+    page_size: String(limit),
+    license: "cc0,by,by-sa",
+  });
+
+  const response = await fetchWithTimeout(`${OPENVERSE_IMAGE_SEARCH_URL}?${params.toString()}`, {
+    headers: {
+      "User-Agent": "InfinitiPits/1.0 (https://pits.infiniti-ia.com)",
+    },
+  });
+  if (!response.ok) return [];
+
+  const data = await response.json();
+  return (data.results || []).map((item) => ({
+    title: item.title,
+    url: item.url,
+    thumbnail: item.thumbnail,
+    sourceUrl: item.foreign_landing_url,
+    source: item.source || item.provider,
+    provider: "openverse",
+    license: [item.license, item.license_version].filter(Boolean).join(" "),
+    attribution: item.attribution,
+  }));
+}
+
+function getWikimediaMetadataValue(metadata, key) {
+  const value = metadata?.[key]?.value;
+  return typeof value === "string" ? value.replace(/<[^>]*>/g, "").trim() : "";
+}
+
+async function searchWikimediaImages(query, limit) {
+  const params = new URLSearchParams({
+    action: "query",
+    generator: "search",
+    gsrsearch: query,
+    gsrnamespace: "6",
+    gsrlimit: String(limit),
+    prop: "imageinfo",
+    iiprop: "url|extmetadata",
+    iiurlwidth: "1200",
+    format: "json",
+    origin: "*",
+  });
+
+  const response = await fetchWithTimeout(`${WIKIMEDIA_IMAGE_SEARCH_URL}?${params.toString()}`, {
+    headers: {
+      "User-Agent": "InfinitiPits/1.0 (https://pits.infiniti-ia.com)",
+    },
+  });
+  if (!response.ok) return [];
+
+  const data = await response.json();
+  return Object.values(data.query?.pages || {}).map((page) => {
+    const info = page.imageinfo?.[0] || {};
+    const metadata = info.extmetadata || {};
+
+    return {
+      title: String(page.title || "").replace(/^File:/, ""),
+      url: info.thumburl || info.url,
+      thumbnail: info.thumburl || info.url,
+      sourceUrl: info.descriptionurl,
+      source: "Wikimedia Commons",
+      provider: "wikimedia",
+      license: getWikimediaMetadataValue(metadata, "LicenseShortName"),
+      attribution: getWikimediaMetadataValue(metadata, "Attribution") || getWikimediaMetadataValue(metadata, "Artist"),
+    };
+  });
+}
+
+async function searchTechnicalImages(message) {
+  const limit = getImageCount();
+  if (limit === 0 || !shouldSearchImages(message)) return { images: [], query: "" };
+
+  const query = buildImageSearchQuery(message);
+  const provider = getImageProvider();
+  const searches = [];
+
+  if (provider === "google" || provider === "auto") {
+    searches.push(() => searchGoogleImages(query, limit));
+  }
+  if (provider === "openverse" || provider === "auto") {
+    searches.push(() => searchOpenverseImages(query, limit));
+  }
+  if (provider === "wikimedia" || provider === "auto") {
+    searches.push(() => searchWikimediaImages(query, limit));
+  }
+
+  const images = [];
+  for (const search of searches) {
+    try {
+      images.push(...await search());
+    } catch (error) {
+      console.error("Image search error", error);
+    }
+
+    if (dedupeImages(images, limit).length >= limit) break;
+  }
+
+  return { images: dedupeImages(images, limit), query };
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderImageResultsHtml(images) {
+  if (!images.length) return "";
+
+  const cards = images
+    .map((image, index) => {
+      const title = escapeHtml(image.title || `Imagen tecnica ${index + 1}`);
+      const imageUrl = escapeHtml(image.url);
+      const sourceUrl = escapeHtml(image.sourceUrl || image.url);
+      const source = escapeHtml(image.source || image.provider || "web");
+      const license = image.license ? ` · ${escapeHtml(image.license)}` : "";
+
+      return `<figure style="margin:14px 0 0;padding:10px;border:1px solid rgba(148,163,184,.35);border-radius:8px;background:rgba(15,23,42,.55);"><img src="${imageUrl}" alt="${title}" loading="lazy" style="display:block;max-width:100%;max-height:360px;margin:0 auto;border-radius:6px;object-fit:contain;background:#fff;" /><figcaption style="margin-top:8px;font-size:11px;line-height:1.45;color:#cbd5e1;">Imagen ${index + 1}: ${title} · ${source}${license} · <a href="${sourceUrl}" target="_blank" rel="noopener noreferrer" style="color:#38bdf8;">fuente</a></figcaption></figure>`;
+    })
+    .join("");
+
+  return `\n\n<div class="pits-visual-results" style="margin-top:14px;"><strong>Referencias visuales encontradas en la web:</strong>${cards}</div>`;
 }
 
 module.exports = async function handler(req, res) {
@@ -171,6 +447,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    const imageSearchPromise = searchTechnicalImages(message);
     const openaiResult = await fetch(OPENAI_RESPONSES_URL, {
       method: "POST",
       headers: {
@@ -190,8 +467,15 @@ module.exports = async function handler(req, res) {
     }
 
     const response = extractResponseText(data);
+    const imageSearch = await imageSearchPromise;
+    const responseText = response || "No pude generar una respuesta util. Intenta reformular la consulta con mas detalles del vehiculo.";
+    const visualHtml = renderImageResultsHtml(imageSearch.images);
+
     return sendJson(res, 200, {
-      response: response || "No pude generar una respuesta util. Intenta reformular la consulta con mas detalles del vehiculo.",
+      response: `${responseText}${visualHtml}`,
+      text: responseText,
+      images: imageSearch.images,
+      image_query: imageSearch.query,
       model: openaiPayload.model,
     });
   } catch (error) {

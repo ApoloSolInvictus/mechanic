@@ -113,6 +113,12 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
+        const normalizeImageResults = (images) => {
+            return Array.isArray(images)
+                ? images.filter(img => img && img.url).slice(0, 4)
+                : [];
+        };
+
         // ==========================================
         // 1. FIREBASE CONFIGURATION
         // SOBERANO: Insert your Firebase credentials here
@@ -305,9 +311,9 @@
                     if (!response.ok) throw new Error('Network Error');
                     
                     const data = await response.json();
-                    let formattedResponse = data.response || data.text || "Diagnostic error. Please try again.";
-                    
-                    setMessages(prev => [...prev, { role: 'ai', content: formattedResponse }]);
+                    let formattedResponse = data.text || data.response || "Diagnostic error. Please try again.";
+
+                    setMessages(prev => [...prev, { role: 'ai', content: formattedResponse, images: normalizeImageResults(data.images) }]);
 
                 } catch (error) {
                     setMessages(prev => [...prev, { role: 'ai', content: "⚠️ Connection lost to the main matrix. Please check your internet." }]);
@@ -364,6 +370,21 @@
                                         {msg.content.split('\n').map((line, i) => (
                                             <p key={i} className="mb-2 last:mb-0" dangerouslySetInnerHTML={{__html: line.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')}}></p>
                                         ))}
+                                        {msg.images && msg.images.length > 0 && (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                                {msg.images.map((img, i) => (
+                                                    <figure key={i} className="bg-white rounded-lg overflow-hidden border border-pits-border">
+                                                        <a href={img.sourceUrl || img.url} target="_blank" rel="noopener noreferrer" className="block h-36 bg-slate-100">
+                                                            <img src={img.thumbnail || img.url} alt={img.title || 'Technical reference'} className="w-full h-full object-contain" loading="lazy" />
+                                                        </a>
+                                                        <figcaption className="p-2 text-[10px] leading-snug text-slate-700 font-mono">
+                                                            <div className="font-bold text-slate-900">{img.title || `Reference ${i + 1}`}</div>
+                                                            <div>{img.source || img.provider || 'web'}{img.license ? ` · ${img.license}` : ''}</div>
+                                                        </figcaption>
+                                                    </figure>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
