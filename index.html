@@ -147,6 +147,34 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
+        const escapeHtml = (value = "") => {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        };
+
+        const formatMessageHtml = (value = "") => {
+            return escapeHtml(value)
+                .replace(/\n/g, "<br>")
+                .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+        };
+
+        const stripVisualResults = (value = "") => {
+            return String(value)
+                .replace(/<div class="pits-visual-results"[\s\S]*?<\/div>/gi, "")
+                .replace(/<figure[\s\S]*?<\/figure>/gi, "")
+                .trim();
+        };
+
+        const normalizeImageResults = (images) => {
+            return Array.isArray(images)
+                ? images.filter(img => img && img.url).slice(0, 6)
+                : [];
+        };
+
         // ==========================================
         // 1. CONFIGURACIONES MAESTRAS
         // ==========================================
@@ -318,6 +346,9 @@
             const [messages, setMessages] = useState([{ role: 'ai', content: welcomeMsg }]);
             const [input, setInput] = useState("");
             const [loading, setLoading] = useState(false);
+            const [visualResults, setVisualResults] = useState([]);
+            const [selectedVisual, setSelectedVisual] = useState(null);
+            const [visualQuery, setVisualQuery] = useState("");
             const bottomRef = useRef(null);
 
             useEffect(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), [messages]);
@@ -329,6 +360,9 @@
                 setMessages(prev => [...prev, newMsg]);
                 setInput("");
                 setLoading(true);
+                setVisualResults([]);
+                setSelectedVisual(null);
+                setVisualQuery(newMsg.content);
 
                 try {
                     const response = await fetch(API_URL, {
@@ -344,11 +378,18 @@
                     if (!response.ok) throw new Error("Error en la matriz del servidor.");
 
                     const data = await response.json();
-                    setMessages(prev => [...prev, { role: 'ai', content: data.response }]);
+                    const images = normalizeImageResults(data.images);
+                    const cleanResponse = stripVisualResults(data.text || data.response || "No pude generar una respuesta útil.");
+
+                    setMessages(prev => [...prev, { role: 'ai', content: cleanResponse }]);
+                    setVisualResults(images);
+                    setSelectedVisual(images[0] || null);
 
                 } catch (error) {
                     console.error(error);
                     setMessages(prev => [...prev, { role: 'ai', content: `⚠️ **Error de conexión:** No me pude comunicar con el servidor central. Verifica que el backend esté activo.` }]);
+                    setVisualResults([]);
+                    setSelectedVisual(null);
                 } finally {
                     setLoading(false);
                 }
@@ -384,40 +425,99 @@
                         </div>
                     </header>
 
-                    {/* ÁREA DE CHAT */}
-                    <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 relative z-10">
-                        {messages.map((msg, i) => (
-                            <div key={i} className={`flex gap-4 max-w-4xl mx-auto ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                                
-                                <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center shadow-lg ${msg.role === 'user' ? 'bg-slate-700 text-white' : `bg-${themeColor} ${isMechanic ? 'text-white' : 'text-pits-dark'} shadow-[0_0_15px_rgba(${isMechanic ? '225,29,72' : '6,182,212'},0.4)]`}`}>
-                                    <i className={`ph-fill ${msg.role === 'user' ? 'ph-user' : 'ph-robot'} text-xl`}></i>
-                                </div>
-                                
-                                <div className={`msg-content p-5 rounded-2xl text-sm md:text-base leading-relaxed ${
-                                    msg.role === 'user' 
-                                    ? `bg-slate-800 text-white rounded-tr-none border border-slate-700` 
-                                    : `glass-panel text-slate-200 rounded-tl-none border-l-2 border-l-${themeColor}`
-                                }`}>
-                                    <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") }}></div>
-                                </div>
+                    {/* ÁREA DE CHAT + VENTANA VISUAL */}
+                    <div className="flex-1 min-h-0 flex flex-col xl:flex-row relative z-10">
+                        <main className="flex-1 min-h-0 overflow-y-auto p-4 md:p-8 space-y-6">
+                            {messages.map((msg, i) => (
+                                <div key={i} className={`flex gap-4 max-w-4xl mx-auto ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
 
-                            </div>
-                        ))}
+                                    <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center shadow-lg ${msg.role === 'user' ? 'bg-slate-700 text-white' : `bg-${themeColor} ${isMechanic ? 'text-white' : 'text-pits-dark'} shadow-[0_0_15px_rgba(${isMechanic ? '225,29,72' : '6,182,212'},0.4)]`}`}>
+                                        <i className={`ph-fill ${msg.role === 'user' ? 'ph-user' : 'ph-robot'} text-xl`}></i>
+                                    </div>
 
-                        {loading && (
-                            <div className="flex gap-4 max-w-4xl mx-auto">
-                                <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center shadow-lg opacity-50 bg-${themeColor} ${isMechanic ? 'text-white' : 'text-pits-dark'}`}>
-                                    <i className="ph-fill ph-robot text-xl"></i>
+                                    <div className={`msg-content p-5 rounded-2xl text-sm md:text-base leading-relaxed ${
+                                        msg.role === 'user'
+                                        ? `bg-slate-800 text-white rounded-tr-none border border-slate-700`
+                                        : `glass-panel text-slate-200 rounded-tl-none border-l-2 border-l-${themeColor}`
+                                    }`}>
+                                        <div dangerouslySetInnerHTML={{ __html: formatMessageHtml(msg.content) }}></div>
+                                    </div>
+
                                 </div>
-                                <div className={`glass-panel px-5 py-4 rounded-2xl rounded-tl-none flex items-center gap-2 border-l-2 border-l-${themeColor}`}>
-                                    <div className={`w-2 h-2 rounded-full bg-${themeColor} typing-dot`}></div>
-                                    <div className={`w-2 h-2 rounded-full bg-${themeColor} typing-dot`}></div>
-                                    <div className={`w-2 h-2 rounded-full bg-${themeColor} typing-dot`}></div>
+                            ))}
+
+                            {loading && (
+                                <div className="flex gap-4 max-w-4xl mx-auto">
+                                    <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center shadow-lg opacity-50 bg-${themeColor} ${isMechanic ? 'text-white' : 'text-pits-dark'}`}>
+                                        <i className="ph-fill ph-robot text-xl"></i>
+                                    </div>
+                                    <div className={`glass-panel px-5 py-4 rounded-2xl rounded-tl-none flex items-center gap-2 border-l-2 border-l-${themeColor}`}>
+                                        <div className={`w-2 h-2 rounded-full bg-${themeColor} typing-dot`}></div>
+                                        <div className={`w-2 h-2 rounded-full bg-${themeColor} typing-dot`}></div>
+                                        <div className={`w-2 h-2 rounded-full bg-${themeColor} typing-dot`}></div>
+                                    </div>
                                 </div>
+                            )}
+                            <div ref={bottomRef}></div>
+                        </main>
+
+                        <aside className={`w-full xl:w-[420px] 2xl:w-[480px] shrink-0 glass-panel border-t xl:border-t-0 xl:border-l ${isMechanic ? 'border-pits-red/30' : 'border-pits-cyan/30'} p-4 md:p-5 flex flex-col gap-4 max-h-[46vh] xl:max-h-none overflow-hidden`}>
+                            <div className="flex items-center justify-between gap-3 shrink-0">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className={`w-10 h-10 rounded-xl ${isMechanic ? 'bg-pits-red/15 text-pits-red' : 'bg-pits-cyan/15 text-pits-cyan'} border ${isMechanic ? 'border-pits-red/30' : 'border-pits-cyan/30'} flex items-center justify-center shrink-0`}>
+                                        <i className="ph-fill ph-images text-xl"></i>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h2 className="text-white font-bold text-sm uppercase tracking-widest">Ventana Visual</h2>
+                                        <p className="text-[10px] text-slate-400 font-mono uppercase truncate">
+                                            {selectedVisual ? 'Imagen técnica encontrada' : loading ? 'Buscando referencias' : 'Esperando consulta técnica'}
+                                        </p>
+                                    </div>
+                                </div>
+                                {selectedVisual && (
+                                    <a href={selectedVisual.sourceUrl || selectedVisual.url} target="_blank" rel="noopener noreferrer" className={`w-10 h-10 rounded-lg flex items-center justify-center bg-slate-900/80 hover:bg-slate-800 transition ${isMechanic ? 'text-pits-red' : 'text-pits-cyan'}`} title="Abrir fuente">
+                                        <i className="ph-bold ph-arrow-square-out text-lg"></i>
+                                    </a>
+                                )}
                             </div>
-                        )}
-                        <div ref={bottomRef}></div>
-                    </main>
+
+                            <div className="flex-1 min-h-0 overflow-y-auto">
+                                {selectedVisual ? (
+                                    <div className="space-y-3">
+                                        <a href={selectedVisual.url} target="_blank" rel="noopener noreferrer" className="block bg-white rounded-lg border border-slate-300 p-2 min-h-[220px] md:min-h-[260px] xl:min-h-[360px] flex items-center justify-center">
+                                            <img src={selectedVisual.url} alt={selectedVisual.title || 'Referencia técnica'} className="max-w-full max-h-[420px] object-contain" loading="lazy" />
+                                        </a>
+
+                                        <div className="bg-black/50 border border-slate-700 rounded-lg p-3">
+                                            <h3 className="text-white text-sm font-bold leading-snug">{selectedVisual.title || 'Referencia técnica'}</h3>
+                                            <p className="text-[10px] text-slate-400 font-mono mt-1 uppercase">
+                                                {selectedVisual.source || selectedVisual.provider || 'web'}{selectedVisual.license ? ` · ${selectedVisual.license}` : ''}
+                                            </p>
+                                            {visualQuery && (
+                                                <p className="text-xs text-slate-500 mt-2">Consulta: {visualQuery}</p>
+                                            )}
+                                        </div>
+
+                                        {visualResults.length > 1 && (
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {visualResults.map((img, idx) => (
+                                                    <button key={idx} type="button" onClick={() => setSelectedVisual(img)} className={`h-20 rounded-lg border overflow-hidden bg-white p-1 transition ${selectedVisual.url === img.url ? (isMechanic ? 'border-pits-red ring-2 ring-pits-red/30' : 'border-pits-cyan ring-2 ring-pits-cyan/30') : 'border-slate-600 hover:border-slate-400'}`} title={img.title || `Imagen ${idx + 1}`}>
+                                                        <img src={img.thumbnail || img.url} alt={img.title || `Imagen ${idx + 1}`} className="w-full h-full object-contain" loading="lazy" />
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="h-full min-h-[220px] flex flex-col items-center justify-center text-center border border-dashed border-slate-700 rounded-lg bg-black/30 p-6">
+                                        <i className={`ph-thin ph-image-square text-5xl mb-4 ${isMechanic ? 'text-pits-red' : 'text-pits-cyan'} opacity-70`}></i>
+                                        <p className="text-white text-sm font-bold uppercase tracking-widest">{loading ? 'Buscando imágenes...' : 'Sin imagen seleccionada'}</p>
+                                        <p className="text-xs text-slate-500 mt-2 max-w-xs">Pregunta por un sistema, falla, sensor, diagrama, motor, moto o cuadraciclo para mostrar referencias visuales aquí.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </aside>
+                    </div>
 
                     {/* INPUT AREA */}
                     <footer className="glass-panel p-4 md:p-6 border-t border-pits-border relative z-20 shrink-0">
